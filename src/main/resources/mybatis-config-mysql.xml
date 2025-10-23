@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-config.dtd">
+    
+<configuration>
+
+    <settings>
+        <!-- CamelCase 자동 변환 -->
+        <setting name="mapUnderscoreToCamelCase" value="true"/>
+        <!--<setting name="logImpl" value="STDOUT_LOGGING"/>-->
+    </settings>
+    
+    <typeAliases>
+	    <package name="com.dain23.common.model"/>
+	    <package name="com.dain23.management.model"/>
+    </typeAliases>
+    
+    <mappers>
+    	<mapper resource="mappers/common/sessionMapper.xml"/>
+    	<mapper resource="mappers/common/commonMapper.xml"/>
+    	<mapper resource="mappers/management/managementMapper.xml"/>
+    	<mapper resource="mappers/management/systemMapper.xml"/>
+    </mappers>
+    
+</configuration>

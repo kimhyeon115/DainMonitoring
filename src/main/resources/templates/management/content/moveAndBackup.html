@@ -1,0 +1,189 @@
+
+<!-- 파일 관리 >> moveAndBackup 컨텐츠 -->
+<div class="container-xl mt-3">
+	<div class="append-card">
+		<div class="append-inner">
+			<div class="append-guide p-4 rounded">
+				<h1>파일 관리 > <small>이동 및 백업</small></h1>
+				<div class="append-input mb-3 mt-3">
+		  		    <strong>역할</strong>
+	  			</div>
+	  			<ul class="list-unstyled ml-3">
+		  		    <li>각각의 수집 PC에서 수집된 파일내 데이터를</li>
+		  		    <li>MeasurementApp을 통해 DB에 업로드하기 위해</li>
+		  		    <li>고정파일에 저장하면서, 이에 대한 설정을 관리하는 기능</li>
+	  			</ul>
+				<div class="append-input mb-3 mt-3">
+					<strong>명칭 설명</strong>
+				</div>
+				<ul class="list-unstyled ml-3">
+					<li>수집 : 현재 수집되고 있는 파일 정보</li>
+					<li>이동 : MeasurementApp에서 DB에 업로드하기 위해 사용하는 파일 정보</li>
+	   				<li>백업 : 원본 데이터의 보존을 위한 파일 정보</li>
+				</ul>
+				<div class="append-input mb-3 mt-3">
+					<strong>사용 팁</strong>
+				</div>
+				<ul class="list-unstyled ml-3">
+					<li>파일 선택 클릭시 열리는 파일 선택창에서</li>
+					<li>상단 경로를 복사하여 편리하게 입력할수 있습니다</li>
+					<li>파싱 타입은 필히 수집 프로그램에 맞게 설정</li>
+					<li>FileZilla, EVS/BLS 타입은 수집 파일 생략 가능 (경로는 필수)</li>
+				</ul>
+			</div>
+
+			<div id="AppendForm" class="append-form">
+				<div class="append-input mb-3">
+					<div class="append-input-inner">
+						<label class="form-label">구분 명칭</label>
+						<input id="name" type="text" class="form-control" placeholder="구분 명칭을 입력하세요">
+					</div>
+					<div>
+						<div class="form-label">수집 PC</div>
+						<select class="form-select" id="pc_id">
+							<option value="" disabled selected>선택해주세요</option>
+							<th:block th:each="pc : ${selectComputer}">
+								<option th:value="${pc.id}" th:text="${pc.name}"></option>
+							</th:block>
+                        </select>
+					</div>
+                </div>
+				<div class="path-section-bar"></div>
+				<div class="append-input mb-3">
+					<div class="append-input-inner">
+						<div class="form-label">수집 파일명</div>
+						<input id="source_name" type="text" class="form-control" disabled>
+					</div>
+					<div>
+						<div class="form-label">&nbsp;</div>
+						<input id="source_file" type="file" class="form-control" accept=".txt">
+					</div>
+				</div>
+				<div class="append-input mb-3">
+					<div class="append-input-inner">
+						<div class="form-label">수집 경로</div>
+						<input id="source_path" type="text" class="form-control" placeholder="예) C:\source">
+					</div>
+				</div>
+				<div class="path-section-bar"></div>
+				<div class="append-input mb-3">
+					<div class="append-input-inner">
+						<div class="form-label">이동 파일명</div>
+						<input id="target_name" type="text" class="form-control" disabled>
+					</div>
+					<div>
+						<div class="form-label">&nbsp;</div>
+						<input id="target_file" type="file" class="form-control" accept=".txt">
+					</div>
+				</div>
+				<div class="append-input mb-3">
+					<div class="append-input-inner">
+						<div class="form-label">이동 경로</div>
+						<input id="target_path" type="text" class="form-control" placeholder="예) D:\target">
+					</div>
+				</div>
+				<div class="path-section-bar"></div>
+				<div class="append-input mb-3">
+					<div class="append-input-inner">
+						<div class="form-label">파싱 타입</div>
+						<select class="form-select" id="parsing_type_id">
+							<option value="" disabled selected>선택해주세요</option>
+							<option th:each="code : ${selectParsingCode}" th:value="${code.idx}" th:text="${code.text}"></option>
+						</select>
+					</div>
+					<div class="mb-3">
+						<div class="form-label">&nbsp;</div>
+						<div class="append-button mt-3">
+							<div class="d-flex justify-content-end align-items-center"></div>
+							<div class="d-flex justify-content-end align-items-center">
+								<span>실행 여부</span>
+								<label class="form-check form-check-single form-switch">
+									<input id="run" class="form-check-input" type="checkbox">
+								</label>
+							</div>
+						</div>
+					</div>
+				</div>
+				
+				<div class="append-button">
+					<div>
+						<a class="btn btn-6 btn-outline-primary" onclick="ResetFileManageForm('moveAndBack')">초기화</a>
+					</div>
+					<div>
+						<a class="btn btn-6 btn-outline-success mx-1" onclick="UpsertMoveAndBackInfo(true)">저장</a>
+						<a class="btn btn-6 btn-outline-danger" onclick="UpsertMoveAndBackInfo(false)">삭제</a>
+					</div>
+					<input type="hidden" id="appendId" value="0">
+					<input type="hidden" id="appendCd">
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div th:fragment="moveAndBackup" class="container-xl mt-3">
+	<div class="card">
+		<div class="table-title">
+			<div>
+				<span class="table-title-text">Move, copy and backup files</span>
+			</div>
+			<div class="d-flex gap-3 align-items-center">
+				<div><strong>검색 조건</strong></div>
+				<select class="form-select select-filter" id="select_pc" onchange="onSelectFilterChange()">
+					<option value="">전체</option>
+					<th:block th:each="pc : ${selectComputer}">
+						<option th:value="${pc.id}" th:text="${pc.name}"></option>
+					</th:block>
+                </select>
+				<select class="form-select select-filter" id="select_parsing" onchange="onSelectFilterChange()">
+					<option value="">전체</option>
+					<option th:each="code : ${selectParsingCode}" th:value="${code.idx}" th:text="${code.text}"></option>
+				</select>
+			</div>
+		</div>
+		<div class="table-responsive">
+			<table class="table card-table table-vcenter text-nowrap datatable" id="collect_table">
+				<thead>
+					<tr>
+						<th style="width: 13%">구분 명칭</th>
+						<th style="width: 8%">수집 PC</th>
+						<th style="width: 10%">파싱 타입</th>
+						<th style="width: 15%">최근 수집일시</th>
+						<th style="width: 22%">원천(수집)</th>
+						<th style="width: 24%">타겟(이동)</th>
+						<th style="width: 7%">실행 여부</th>
+					</tr>
+				</thead>
+				<tbody id="collect-body">
+					<tr th:each="object : ${selectMoveAndBackup}"
+						th:data-id="${object.id}"
+						th:data-name="${object.name}"
+						th:data-pc_id="${object.pc_id}"
+						th:data-source_name="${object.source_name}"
+						th:data-source_path="${object.source_path}"
+						th:data-target_name="${object.target_name}"
+						th:data-target_path="${object.target_path}"
+						th:data-run="${object.run}"
+						th:data-parsing_type_id="${object.parsing_type_id}"
+						class="row-list-tr" ondblclick="SelectedMoveAndBackRow(this)">
+						<td class="ellipsis-cell" th:text="${object.name}"></td>
+						<td class="ellipsis-cell" th:text="${object.pc_text}"></td>
+						<td class="ellipsis-cell" th:text="${object.parsing_text}"></td>
+						<td class="ellipsis-cell" th:text="${#dates.format(object.last_dt, 'yyyy-MM-dd HH:mm:ss')}"></td>
+						<td class="ellipsis-cell" th:text="${object.source_path}"></td>
+						<td class="ellipsis-cell" th:text="${object.target_path + '\' + object.target_name}"></td>
+						<td><span class="badge" th:classappend="${object.run == true} ? 'bg-info' : 'bg-warning'" th:text="${object.run == true ? '실행' : '정지'}"></span></td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+		<div class="card-footer">
+			<div class="row g-2 justify-content-center justify-content-sm-between">
+				<div class="col-auto d-flex align-items-center">
+					<p class="m-0 text-secondary"><strong id="total_count_row" th:text="${'Total ' + selectMoveAndBackup.size()}"></strong></p>
+				</div>
+            </div>
+		</div>
+	</div>
+	<div class="bottom-blank"></div>
+</div>

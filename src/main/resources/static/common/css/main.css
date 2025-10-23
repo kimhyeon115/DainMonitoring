@@ -1,0 +1,29 @@
+
+body{
+    font-size: 14px;
+}
+
+:target:before{
+    content: "";
+    display: block;
+    height: 80px;          /* fixed header 높이 만큼 부여 or 브라우저 상단에서 띄워놓기 원하는 높이 */
+    margin-top: -80px;     /* 위에서 설정한 높이와 동일한 만큼을 음수로 제공 */
+    visibility: hidden;
+}
+
+table {
+    white-space:nowrap;
+}
+
+ .table-data {
+	font-size: small;
+}
+
+.type-title {
+	width: 250px;
+	height: 30px;
+	background: linear-gradient(to right, #ffc107, #ffffff);
+	border-radius: 20px;
+	display: flex;
+	align-items: center;
+}

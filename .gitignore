@@ -1,0 +1,25 @@
+# Maven 빌드 폴더
+/target/
+
+# Java 클래스 파일
+*.class
+
+# Eclipse / STS 설정파일
+.project
+.classpath
+.settings/
+
+# IntelliJ 설정파일
+.idea/
+*.iml
+
+# OS 관련 파일
+.DS_Store
+Thumbs.db
+
+# 로그
+*.log
+
+# 민감 정보 제외
+src/main/resources/env.properties
+.env

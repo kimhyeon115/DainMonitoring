@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+	
+<head>
+	<meta charset="UTF-8">
+	<title>시스템</title>
+	<link rel="icon" href="data:,">
+	<style>
+		* {
+		    user-select: none;
+		}
+		
+	    html, body {
+	      margin: 0;
+	      padding: 0;
+	      height: 100%;
+	      background-color: white;
+	      overflow: hidden; /* 스크롤 제거 */
+	    }
+	
+	    .parent {
+	      display: flex;
+		  flex-direction: column;
+	      justify-content: center;
+	      align-items: center;
+	      height: 100%;
+	    }
+	
+	    .child img {
+	      width: 60vw; /* 적당한 크기 (화면 너비의 60%) */
+	      max-width: 800px;
+	      height: auto;
+	    }
+		
+		.link-below {
+		  font-size: 16px;
+		}
+
+		.link-below a {
+		  text-decoration: none;
+		  color: #007BFF;
+		}
+	</style>
+</head>
+<body>
+	<div class="parent">
+		<span>해당 페이지를 찾을수 없습니다.</span>
+		<div class="child">
+			<img src="/common/images/notFound.png" alt="잘못된 접근입니다." loading="lazy" />
+		</div>
+	</div>
+</body>
+</html>

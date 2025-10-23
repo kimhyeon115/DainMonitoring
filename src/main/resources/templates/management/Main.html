@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" class="layout-navbar-fixed layout-menu-fixed " 
+	dir="ltr" data-skin="default" data-bs-theme="light" data-assets-path="/management/sneat/assets/" 
+	data-template="vertical-menu-template-starter">
+	
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="refresh" content="600">
+	<title>다인 모니터링</title>
+	
+	<!-- Favicon -->
+    <link rel="icon" type="image/png" href="/common/images/logo.png" />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
+
+    <!-- Core CSS -->
+    <link rel="stylesheet" href="/management/sneat/assets/vendor/css/core.css" class="template-customizer-core-css" />
+    <link rel="stylesheet" href="/management/sneat/assets/css/demo.css" />
+
+    <!-- Vendors CSS -->
+    <link rel="stylesheet" href="/management/sneat/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
+	<link th:href="@{/{pageName}/css/main.css(pageName=${model.pageName})}" rel="stylesheet" />
+	<link th:href="@{/{pageName}/css/menu.css(pageName=${model.pageName})}" rel="stylesheet" />
+	
+	<!-- icons -->
+	<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+	
+    <!-- Helpers -->
+    <script src="/management/sneat/assets/vendor/js/helpers.js"></script>
+    <script src="/management/sneat/assets/js/config.js"></script>
+</head>
+
+<body>
+	
+	<nav class="sidebar">
+		<div class="text">CLIENT</div>
+		<ul>
+			<li th:each="management : ${model.groupManagement}">
+				<a href="#" class="feat-btn" th:text="${management[0].comShortName}">
+				</a>
+				<ul class="feat-show">
+					<li th:each="company : ${management}">
+						<a th:href="'#companyTap_' + ${company.placeId}" th:text="${company.placeShortName}"></a>
+					</li>
+				</ul>
+			</li>
+		</ul>
+	</nav>
+	
+	<div class="layout-page">
+		<div class="content-wrapper">
+			<div class="container-xxl content-top-bar">
+				<div class="content-top-inner">
+					<div>
+						<a href="#"><i class="fas fa-user-shield"></i> 관리</a>
+						<a th:href="@{/{pageName}/system(pageName=${model.pageName})}"><i class="fas fa-gears"></i> 설정</a>
+						<a th:href="@{/{pageName}/signOut(pageName=${model.pageName})}"><i class="fas fa-right-from-bracket"></i> 로그아웃</a>
+					</div>
+				</div>
+			</div>
+			<div class="container-xxl flex-grow-1 container-p-y">
+				<div class="row">
+					<th:block th:each="management : ${model.groupManagement}">
+			            <div class="col-12">
+							<div class="card">
+								<div class="company-title"><span th:text="${management[0].comFullName}" class="company-name"></span></div>
+								<th:block th:each="company : ${management}">
+						    		<div th:id="'companyTap_' + ${company.placeId}" class="card-body">
+						            	<div th:id="'company_' + ${company.placeId}" class="place">
+											<a th:href="${company.url}" role="button" target="_blank">
+												<span th:text="${company.placeShortName}" class="company-korname"></span>
+											</a>
+										</div>
+										<div class="card table-card" th:data-run="${company.run}">
+											<div class="card-switch">
+												<span class="card-status-text"></span>
+												<div class="card-switch-label">
+													<span class="switch-label">외부 접속</span>
+													<div class="form-check form-switch">
+														<label th:id="'switch_' + ${company.placeId} + '_label'" class="form-check-label" th:for="'switch_' + ${company.placeId}"></label>
+													 	<input th:id="'switch_' + ${company.placeId}" class="form-check-input" type="checkbox" 
+															role="switch" th:checked="${company.open}" th:data-open="${company.open}"
+															th:data-korname="${company.placeShortName}"	th:data-place_id="${company.placeId}" 
+															onchange="OpenSwitchChange(this)" />
+													</div>
+												</div>
+											</div>
+											<div class="table-responsive table-outer">
+								            	<table class="table mb-0">
+								            		<thead class="table-thead">
+								                        <tr>
+								                            <th style = "width: 18%">구분</th>
+								                            <th style = "width: 13%">로거</th>
+								                            <th style = "width: 10%">최초측정일</th>
+								                            <th style = "width: 18%">최근측정일시</th>
+															<th style = "width: 15%">C/N</th>
+															<th style = "width: 10%">계측</th>
+								                            <th style = "width: 8%">STATUS</th>
+															<th style = "width: 8%">ACTIONS</th>
+								                        </tr>
+								                    </thead>
+								                    <tbody>
+								                        <tr th:each="logger : ${company.loggerStatus}">
+															<td th:text="${logger.loggerName}"></td>
+															<td th:text="${logger.loggerCode}"></td>
+									                    	<td th:text="${logger.installDt}"></td>
+															<td th:text="${logger.uploadedAt}"></td>
+									                    	<td th:text="${logger.cdmaNo}"></td>
+															<td th:text="${logger.pcName}"></td>
+															<td><span class="badge bg-label-danger me-1">Stopped</span></td>
+															<td>
+																<div class="dropdown">
+																	<button type="button" class="btn set-td-btn">
+																		<i class="fas fa-gear"></i>
+																	</button>
+																	<div class="dropdown-menu">
+																		<a class="dropdown-item" href="#" 
+																			onclick="loggerEdit(this, event)" 
+																			th:data-loggername="${logger.loggerCode}" 
+																			th:data-korname="${logger.loggerName}" 
+																			th:data-installdt="${logger.installDt}" 
+																			th:data-cdmano="${logger.cdmaNo}" 
+																			th:data-pcid="${logger.pcId}"
+																		>Edit</a>
+																		<a class="dropdown-item" href="#" onclick="loggerDetails(this, event)">Details</a>
+																	</div>
+																</div>
+															</td>
+								                    	</tr>
+								                    </tbody>
+								            	</table>
+											</div>
+										</div>
+						            </div>
+								</th:block>
+							</div>
+						</div>
+					</th:block>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	<div class="screen-blur d-none"></div>
+	<div class="edit-form d-none">
+		<div class="mb-4 text-center">
+			<h4><span id="logger-name"></span></h4>
+		</div>
+		<div class="mb-4">
+			<label class="form-label" for="logger-korname">구분</label>
+			<input type="text" class="form-control" id="logger-korname" autocomplete="off" />
+		</div>
+		<div class="mb-4">
+			<label class="form-label" for="logger-install">최초측정일</label>
+			<input type="date" class="form-control" id="logger-install" autocomplete="off" />
+		</div>
+		<div class="mb-4">
+			<label class="form-label" for="logger-cdmano">C/N</label>
+			<input type="text" class="form-control" id="logger-cdmano" autocomplete="off" />
+		</div>
+		<div class="mb-4">
+			<label class="form-label" for="logger-computer">계측</label>
+			<select class="form-control" id="logger-computer">
+				<th:block th:each="pc : ${model.computer}">
+					<option th:text="${pc.name}" th:value="${pc.id}"></option>
+				</th:block>
+			</select>
+		</div>
+		<div class="d-flex justify-content-end gap-2">
+		  <button type="button" class="btn btn-dark" onclick="UpdateLoggerEditForm()">저장</button>
+		  <button type="button" class="btn btn-secondary" onclick="editCancel()">취소</button>
+		</div>
+	</div>
+	
+	<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1080">
+		<div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="3000">
+			<div class="toast-body"></div>
+		</div>
+	</div>
+	
+	<button id="clientDownBtn" onclick="ClientLoggerDownload()"><i class="fas fa-file-excel"></i> &nbsp;로거</button>
+	<button id="scrollTopBtn">▲ Top</button>
+
+	<!-- Core JS -->
+    <!-- build:js assets/vendor/js/core.js -->
+    <script src="/management/sneat/assets/vendor/libs/jquery/jquery.js"></script>
+    <script src="/management/sneat/assets/vendor/libs/popper/popper.js"></script>
+    <script src="/management/sneat/assets/vendor/js/bootstrap.js"></script>
+    <script src="/management/sneat/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
+    <script src="/management/sneat/assets/vendor/js/menu.js"></script>
+    <!-- endbuild -->
+
+    <!-- Main JS -->
+    <script src="/management/sneat/assets/js/main.js"></script>
+	
+	<!-- js 파일 -->
+	<script type="text/javascript" th:src="@{/{pageName}/js/main.js(pageName=${model.pageName})}"></script>
+</body>
+
+</html>

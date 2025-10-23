@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+	
+<head>
+	<meta charset="UTF-8">
+	<title th:text="${model.place.shortName}"></title>
+	
+	<link rel="icon" href="data:,">
+	<link href="/common/css/dain.css" rel="stylesheet" />
+	<link href="/common/css/main.css" rel="stylesheet" />
+	<!-- Latest compiled and minified CSS -->
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+	
+	<!-- jQuery library -->
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+	<!-- Popper JS -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+	<!-- Latest compiled JavaScript -->
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+	<!-- 
+	    Google Charts Library
+	    Source: https://developers.google.com/chart/
+	-->
+	<script type = "text/javascript" src = "https://www.gstatic.com/charts/loader.js"></script>
+	<script type= "text/javascript">google.charts.load('current', {'packages':['corechart']});</script>
+	
+	<!-- 아이콘 -->
+	<script src="https://use.fontawesome.com/releases/v6.1.0/js/all.js" crossorigin="anonymous"></script>
+	
+	<!-- js 파일 -->
+	<script type="text/javascript" src="/common/js/main.js"></script>
+	<script type="text/javascript" src="/common/js/drawGoogleChart.js"></script>
+</head>
+
+<body style="margin-top:10px;" th:data-page-code="${model.place.code}" data-spy="scroll" data-target=".navbar" data-offset="180">
+	
+	<!-- 로딩 -->
+	<div id="loadingOverlay">
+		<div class="loading-content">
+			<img src="/common/images/loading.png" alt="Loading..." class="rotate" />
+		</div>
+	</div>
+	
+	<!-- 헤더 -->
+	<nav class="navbar navbar-expand-md bg-dark navbar-dark fixed-top">
+		<div class="container">
+			<a class="navbar-brand" href="#" style="color:orange">Monitoring</a>
+			<button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#myNavbar">
+				<span class="navbar-toggler-icon"></span>
+			</button>
+			<div class="collapse navbar-collapse" id="myNavbar">
+                <ul class="navbar-nav mr-auto">
+					<li class="nav-item"><a class="nav-link" href="#Location">계측기 설치위치</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#part">계측 현황</a></li>
+                    <li class="dropdown">
+                        <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">
+                            설치위치
+                        </a>
+						<div class="dropdown-menu">
+						  <a class="dropdown-item" 
+						  	th:each="logger : ${model.loggers}" 
+							th:href="'#logger_card_' + ${logger.id}" 
+							th:text="${logger.name}">
+						</a>
+						</div>
+                    </li>
+                </ul>
+                <ul class="navbar-nav navbar-right">
+					<li class="nav-item">
+						<a class="nav-link" th:href="@{/{place}/main(place=${model.place.code})}">
+					        <i class="fas fa-history"></i>
+					        <span th:text="${#dates.format(#dates.createNow(), 'yyyy.MM.dd HH:mm:ss')}"></span>
+					    </a>
+					</li>
+                    <li class="nav-item">
+						<a class="nav-link" href="http://dain23.iptime.org:8000/nrich/">
+							<i class="fas fa-sign-out-alt"></i> Log out
+						</a>
+					</li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+	
+	<!-- 제목 -->
+	<div class="jumbotron text-center" style="padding-top:80px;padding-bottom:20px;">
+		<h2>
+		    <span th:text="${model.place.fullName}">기본 정보</span> 
+		    <small class="text-secondary">자동화계측</small>
+		</h2>
+	</div>
+	
+	<!-- 데이터 -->
+	<div class="container">
+		
+		<!-- 설치 위치 -->
+		<div id="Location"></div>
+		<div class="card mb-3">
+			<div class="card-header bg-secondary text-white border border-secondary pb-1">
+				<h5><i class="fas fa-map-marker-alt text-warning"></i>&nbsp&nbsp<small>계측기 설치위치</small></h5>
+			</div>
+			<div class="card-body border border-secondary" style="text-align: center;">
+				<img th:src="@{/{place}/images/map.png(place=${model.place.code})}" alt="계측기 평면도" loading="lazy" 
+					style="display: block; margin: 0px auto;" />
+			</div>
+		</div>
+		
+		<!--현황 파트 -->
+		<div id="part"></div>
+		<div class="card mb-3">
+			<div class="card-header bg-secondary text-white border border-secondary pb-1">
+				<h5><i class="fas fa-tasks text-warning"></i>&nbsp&nbsp<small>계측 현황</small></h5>
+			</div>
+			<div class="card-body border border-secondary">
+				<div class="row">
+					<div class="col-md-12">
+						<div class="table-responsive">
+							<table class="table text-center table-bordered">
+								<thead>
+									<tr bgcolor="#eeeeee">
+										<th class="text-center" style="width: 20%;">구 분</th>
+										<th class="text-center" style="width: 20%;">최초측정일시</th>
+										<th class="text-center" style="width: 20%;">최근측정일시</th>
+										<th class="text-center" style="width: 40%;">설치위치</th>
+									</tr>
+								</thead>
+								<tbody id="loggers_body">
+									<tr th:each="logger : ${model.loggers}" class="logger-tr">
+										<td>
+											<a th:href="@{/{place}/data(select=${logger.code}, place=${model.place.code})}" role="button" target="_blank"><strong th:text="${logger.name}"></strong></a>
+									    </td>
+									    <td th:text="${logger.firstAt}"></td>
+									    <td th:text="${logger.lastAt}" class="last-at"></td>
+									    <td th:text="${logger.location}"></td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		
+		<!-- 데이터 파트 -->
+		<th:block th:each="logger : ${model.loggers}">
+			<div th:id="'logger_card_' + ${logger.id}"></div>
+			<div class="card mb-3">
+				<div class="card-header bg-secondary text-white border border-secondary pb-1">
+					<h5><i class="fas fa-tasks text-warning"></i>&nbsp&nbsp<small th:text="${logger.name}"></small></h5>
+				</div>
+				<div class="card-body border border-secondary">
+					
+					<!-- 정각 측정 파트 -->
+					<th:block th:each="data, iterStat : ${model.latestCycleData[logger.id]}">
+						<div class="type-title">
+							<strong th:text="${data[0].sensorTypeName}" class="text-white ml-3"></strong>
+						</div>
+						<div class="row mt-2 mb-3">
+							<div class="col-md-6">
+								<div class="table-responsive">
+									<table class="table table-sm text-center table-bordered table-data">
+										<thead>
+											
+											<tr bgcolor="#eeeeee" th:if="${data[0].sensorTypeId == 6}">
+												<th class="text-center">식별코드</th>
+												<th class="text-center">현재값(°C)</th>
+												<th class="text-center">계측구분</th>
+											</tr>
+											
+											<tr bgcolor="#eeeeee" th:if="${data[0].sensorTypeId == 14}">
+												<th class="text-center">식별코드</th>
+												<th class="text-center">현재값(%RH)</th>
+												<th class="text-center">계측구분</th>
+											</tr>
+											
+											<tr bgcolor="#eeeeee" th:if="${data[0].sensorTypeId == 9}">
+												<th class="text-center">식별코드</th>
+												<th class="text-center">초기치(°)</th>
+												<th class="text-center">변화량(°)</th>
+												<th class="text-center">관리기준(°)</th>
+											</tr>
+											
+											<tr bgcolor="#eeeeee" th:if="${data[0].sensorTypeId == 10}">
+												<th class="text-center">식별코드</th>
+												<th class="text-center">초기치(mm)</th>
+												<th class="text-center">변화량(mm)</th>
+												<th class="text-center">관리기준(mm)</th>
+											</tr>
+											
+											<tr bgcolor="#eeeeee" th:if="${data[0].sensorTypeId == 13}">
+												<th class="text-center">식별코드</th>
+												<th class="text-center">초기치(m)</th>
+												<th class="text-center">변화량(m)</th>
+												<th class="text-center">관리기준(m)</th>
+											</tr>
+											
+										</thead>
+									    <tbody>
+											<th:block th:each="row : ${data}">
+												<tr th:data-code="${row.sensorCode}" th:data-logger="${logger.id}" th:data-type="${row.sensorTypeId}" 
+													th:if="${row.sensorTypeId == 6 or row.sensorTypeId == 14}" class="sensor-hour-tr">
+												    <td>
+														<a th:href="@{/{place}/data(select=${row.sensorId}, place=${model.place.code})}" role="button" target="_blank">
+															<strong th:text="${row.sensorCode}"></strong>
+														</a>
+													</td>
+													<td th:text="${row.changedVal}" class="changed-val"></td>
+													<td th:text="${row.location}"></td>
+												</tr>
+											</th:block>
+											
+											<th:block th:each="row : ${data}">
+												<tr th:data-code="${row.sensorCode}" th:data-logger="${logger.id}" th:data-type="${row.sensorTypeId}" 
+													 th:if="${row.sensorTypeId == 9 or row.sensorTypeId == 10 or row.sensorTypeId == 13}" class="sensor-hour-tr">
+												    <td>
+														<a th:href="@{/{place}/data(select=${row.sensorId}, place=${model.place.code})}" role="button" target="_blank">
+															<strong th:text="${row.sensorCode}"></strong>
+														</a>
+													</td>
+													<td th:text="${row.initialVal}" class="initial-val integer-cut"></td>
+													<td th:text="${row.changedVal}" class="changed-val integer-cut"></td>
+													<td th:text="${row.criteriaVal1}"></td>
+												</tr>
+											</th:block>
+											
+										</tbody>
+									</table>
+								</div>
+							</div>
+							<div class="col-md-6">
+								<div th:id="'graph_' + ${logger.id} + '_' + ${data[0].sensorTypeId}" th:data-type="${data[0].sensorTypeId}"
+								     th:class="${data[0].sensorTypeId != 19} ? ' chart-cycle-type' : ' chart-lasted-type'"
+								     style="height:340px; border: 1px solid #ccc;">
+								</div>
+							</div>
+						</div>
+					</th:block>
+					
+				</div>
+			</div>
+		</th:block>
+		
+	</div>
+	
+	<!-- 푸터 -->
+	<div class="text-center text-white bg-dark" style="margin-bottom:-70px; height:100px; padding:20px;">
+		<div>
+			<h5>(주)다인이엔씨 | <small>대표번호 (031) 902-8915</br>
+				경기도 고양시 일산동구 일산동구 일산로 142 유니테크빌 826호</small></h5>
+		</div>
+    </div>
+
+</body>
+
+</html>

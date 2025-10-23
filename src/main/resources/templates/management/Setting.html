@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+	
+<head>
+	<meta charset="UTF-8">
+	<meta name="user" th:content="${user}">
+	<title>다인 시스템</title>
+	<link rel="icon" href="data:,">
+	
+	<!-- Tabler Core CSS -->
+	<link href="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta13/dist/css/tabler.min.css" rel="stylesheet">
+	<!-- Tabler Core JS (필요한 경우) -->
+	<script src="https://cdn.jsdelivr.net/npm/@tabler/core@1.0.0-beta13/dist/js/tabler.min.js" defer></script>
+	<!-- JQuery -->
+	<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+	<!-- math.js 최신 CDN -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.9.0/math.min.js"></script>
+
+	<link th:href="@{/{pageName}/css/setting.css(pageName=${pageName})}" rel="stylesheet" />
+</head>
+
+<body>
+	<header class="navbar navbar-expand-md navbar-light bg-white border-bottom">
+		<div class="container-xl d-flex align-items-center justify-content-between">
+			<a th:href="@{/{pageName}/(pageName=${pageName})}" class="navbar-brand">
+				<img src="/common/images/logo.png" alt="로고" height="30">&nbsp;다인이엔씨
+			</a>
+			<div class="row flex-column flex-md-row align-items-center position-absolute start-50 translate-middle-x">
+				<div class="col">
+					<ul class="navbar-nav gap-5">
+						<li class="nav-item dropdown">
+							<a class="nav-link dropdown-toggle" href="#navbar-third" data-bs-toggle="dropdown" data-bs-auto-close="outside" role="button" aria-expanded="false">
+								<span class="nav-link-title fw-bold">DMS</span>
+							</a>
+							<div class="dropdown-menu">
+								<a class="dropdown-item" href="#" data-category="dmsSetting">DMS 설정</a>
+							</div>
+						</li>
+						<li class="nav-item dropdown">
+							<a class="nav-link dropdown-toggle" href="#navbar-third" data-bs-toggle="dropdown" data-bs-auto-close="outside" role="button" aria-expanded="false">
+								<span class="nav-link-title fw-bold">파일 관리</span>
+							</a>
+							<div class="dropdown-menu">
+								<a class="dropdown-item" href="#" data-category="moveAndBackup">이동 및 백업</a>
+							</div>
+						</li>
+						<li class="nav-item dropdown">
+							<a class="nav-link dropdown-toggle" href="#navbar-third" data-bs-toggle="dropdown" data-bs-auto-close="outside" role="button" aria-expanded="false">
+								<span class="nav-link-title fw-bold">서비스</span>
+							</a>
+							<div class="dropdown-menu">
+								<a class="dropdown-item" href="#" data-category="webSms">문자 알림 발송</a>
+								<a class="dropdown-item" href="#" data-category="confrimSms">문자 컨펌후 알림</a>
+							</div>
+						</li>
+						<li class="nav-item dropdown">
+							<a class="nav-link dropdown-toggle" href="#navbar-third" data-bs-toggle="dropdown" data-bs-auto-close="outside" role="button" aria-expanded="false">
+								<span class="nav-link-title fw-bold">데이터 자동화</span>
+							</a>
+							<div class="dropdown-menu">
+								<a class="dropdown-item" href="#" data-category="dataIn">데이터 추가</a>
+								<a class="dropdown-item" href="#" data-category="dataUp">데이터 수정</a>
+								<a class="dropdown-item" href="#" data-category="dataDel">데이터 삭제</a>
+							</div>
+						</li>
+						<li class="nav-item dropdown">
+							<a class="nav-link dropdown-toggle" href="#navbar-third" data-bs-toggle="dropdown" data-bs-auto-close="outside" role="button" aria-expanded="false">
+								<span class="nav-link-title fw-bold">수집 스케줄러</span>
+							</a>
+							<div class="dropdown-menu">
+								<a class="dropdown-item" href="#" data-category="photoMeter">광파계 수집</a>
+							</div>
+						</li>
+					</ul>
+				</div>
+			</div>
+	    	<a th:href="@{/{pageName}/signOut(pageName=${pageName})}" class="nav-link text-danger" title="로그아웃">
+				<svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-logout" 
+					width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" 
+					fill="none" stroke-linecap="round" stroke-linejoin="round">
+		        	<path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+		        	<path d="M14 8v-2a2 2 0 0 0 -2 -2h-4a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h4a2 2 0 0 0 2 -2v-2" />
+		        	<path d="M7 12h14l-3 -3m0 6l3 -3" />
+				</svg>&nbsp;로그아웃
+			</a>
+		</div>
+	</header>
+	
+	<input type="hidden" id="category" value="dmsSetting">
+	
+	<main class="page-wrapper"></main>
+	
+	<script type="text/javascript" th:src="@{/{pageName}/js/setting.js(pageName=${pageName})}"></script>
+</body>
+
+</html>

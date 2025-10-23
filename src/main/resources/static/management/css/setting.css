@@ -1,0 +1,434 @@
+
+* {
+    user-select: none;
+}
+
+.form-check-input:hover {
+	cursor: pointer;
+}
+
+.container-xl {
+	min-width: 1116px !important;
+}
+
+.append-card {
+	width: 100%;
+	height: 800px;
+	background-color: white;
+}
+
+.dms-append-card {
+	width: 100%;
+	padding: 20px;
+	background-color: white;
+	border: 1px solid #206bc4;
+	border-radius: 15px;
+	margin-bottom: 15px;
+}
+
+.dms-set-title {
+	color: #206bc4;
+	font-size: 18px;
+	font-weight: bold;
+	align-items: center;
+	display: flex;
+	gap: 10px;
+}
+
+.dms-set-title:hover {
+	cursor: pointer;
+}
+
+.append-card-datadel {
+	width: 100%;
+	height: 600px;
+	background-color: white;
+}
+
+.append-inner {
+	width: 100%;
+	height: 100%;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	padding: 25px 0;
+}
+
+.dms-append-inner {
+	width: 100%;
+	height: 100%;
+	justify-content: center;
+	align-items: center;
+	padding: 15px;
+}
+
+.append-guide {
+	width:600px;
+	height: 100%;
+}
+
+.dms-append-guide {
+	width:300px;
+	height: 100%;
+}
+
+.append-guide ul {
+	margin-bottom: 80px;
+}
+
+.append-guide ul li {
+  margin: 0 0 10px 30px;
+}
+
+.append-guide ul li strong {
+  display: inline-block;
+  width: 40px;
+}
+
+.append-form {
+	width: 550px;
+	height: 100%;
+	padding: 35px;
+	border: 1px solid #206bc4;
+	border-radius: 15px;
+}
+
+.append-switch {
+	margin-bottom: 50px;
+}
+
+.append-button {
+	display: flex;
+	justify-content: space-between;
+}
+
+.dms-append-button {
+	margin-top: 60px;
+	display: flex;
+	justify-content: space-between;
+}
+
+.dms-append-cal-button {
+	margin-top: 20px;
+	display: flex;
+	justify-content: space-between;
+}
+
+.append-button-datadel {
+	display: flex;
+	justify-content: space-between;
+	padding-top: 10px;
+}
+
+.append-input {
+	display: flex;
+	gap: 20px;
+}
+
+.append-input-inner,
+.append-input > div:nth-child(2) {
+  flex: 1;
+}
+
+.form-check {
+	padding-left: 10px !important;
+}
+
+.dms-form-check {
+	padding-left: 25px !important;
+}
+
+.dms-form-small-check {
+	padding-left: 15px !important;
+}
+
+.bottom-blank {
+	height: 100px;
+}
+
+.row-list-tr:hover {
+	background-color: #C4F6FC;
+	cursor: pointer;
+}
+
+.row-select {
+	background-color: #e2e8f0;
+}
+
+.table-title {
+	height: 60px;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin: 0 15px;
+}
+
+.table-title-text {
+	width: 500px;
+	font-size: 20px;
+	font-weight: 600;
+}
+
+.d-flex > div {
+	flex-shrink: 0;
+}
+
+.row-not-pc, .row-not-parsing {
+	display: none;
+}
+
+.ellipsis-cell {
+	max-width: 150px;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.path-section-bar {
+	margin: 2rem 0;
+	border-top: 1px solid rgba(0, 123, 255, 0.8);
+}
+
+.container {
+	display: none;
+	border: 1px solid #ccc;
+	padding: 10px 10px 10px 0px;
+	height: 600px;
+}
+
+.mini-container {
+	display: none;
+	border: 1px solid #ccc;
+	padding: 10px 10px 10px 0px;
+	height: 350px;
+}
+
+.small-container {
+	display: none;
+	border: 1px solid #ccc;
+	padding: 10px 10px 10px 0px;
+	height: 245px;
+}
+
+.dms-middle-title {
+	display: none;
+	font-size: 16px;
+	font-weight: 500;
+	height: 50px;
+	align-items: flex-end;
+}
+
+.left-panel {
+	width: 200px;
+	border-right: 1px solid #ccc;
+	overflow-y: auto;
+}
+
+.left-big-panel {
+	width: 350px;
+	border-right: 1px solid #ccc;
+	overflow-y: auto;
+}
+
+.left-max-panel {
+	width: 750px;
+	border-right: 1px solid #ccc;
+	overflow-y: auto;
+}
+
+.left-middle-panel {
+	width: 270px;
+	border-right: 1px solid #ccc;
+	overflow-y: auto;
+}
+
+.sensor-logger {
+	width:88%;
+	margin: 10px 0 10px 15px;
+}
+
+.left-panel ul {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+}
+
+.left-panel li {
+	padding: 6px 15px;
+	cursor: pointer;
+}
+
+.left-panel li:hover, .left-panel .active {
+	background: #e0e0e0;
+}
+
+.left-big-panel ul {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+}
+
+.left-big-panel li {
+	padding: 6px 15px;
+	cursor: pointer;
+}
+
+.left-big-panel li:hover, .left-big-panel .active {
+	background: #e0e0e0;
+}
+
+.left-middle-panel ul {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+}
+
+.left-middle-panel li {
+	padding: 6px 15px;
+	cursor: pointer;
+}
+
+.left-middle-panel li:hover, .left-middle-panel .active {
+	background: #e0e0e0;
+}
+
+.right-panel {
+	flex: 1;
+	padding: 10px 50px;
+}
+
+.right-panel-inner {
+	width: 500px;
+}
+
+.right-panel-small-inner {
+	width: 400px;
+}
+
+.form-group {
+	height: 40px;
+	margin-bottom: 10px;
+	display: flex;
+	justify-content: left;
+	align-items: center;
+	gap: 20px;
+}
+
+.form-group-textra {
+	height: 40px;
+	margin: 40px 0 10px 0;
+	display: flex;
+	justify-content: left;
+	align-items: center;
+	gap: 20px;
+}
+
+.form-group-cal-btn {
+	height: 60px;
+	margin: 10px 0 5px 0;
+	display: flex;
+	justify-content: left;
+	align-items: center;
+	gap: 20px;
+}
+
+.computer-form-group {
+	height: 90px;
+	padding-top: 3px;
+	margin-bottom: 5px;
+	display: flex;
+	justify-content: left;
+	align-items: flex-start;
+	gap: 20px;
+}
+
+#computer-description {
+	height: 100px;
+}
+
+#calculation-description {
+	height: 100px;
+}
+
+.dms-form-group {
+	height: 40px;
+	margin-bottom: 10px;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+
+.dms-switch-span {
+	width: 200px;
+}
+
+.form-group span {
+	width: 85px;
+}
+
+.dms-form-label {
+	width: 150px;
+	font-size: .875rem;
+}
+
+.place-li-show {
+	display: flex;
+}
+
+.sensor-li-hidden {
+	display: none;
+}
+
+.cal-label {
+	width: 110px;
+}
+
+.cal-btn {
+	width: 56px;
+}
+
+.cal-big-btn {
+	width: 68px;
+}
+
+a.cal-btn.disabled {
+  pointer-events: none;
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+a.cal-big-btn.disabled {
+  pointer-events: none;
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+#sensor-calculation-end, #sensor-initial-end {
+	width: 84%;
+}
+
+#sensor-apply-calculation {
+	width: 280px;
+}
+
+#calculation-formula, 
+#final-calculation,
+#initial-sensor-val {
+	color: #206bc4;
+	font-weight: bold;
+}
+
+.table-fiter-combo {
+	width: 30%;
+}
+
+@keyframes shake {
+  0% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  50% { transform: translateX(5px); }
+  75% { transform: translateX(-5px); }
+  100% { transform: translateX(0); }
+}
+.shake {
+  animation: shake 0.3s;
+}

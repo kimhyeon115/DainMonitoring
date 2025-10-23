@@ -1,0 +1,465 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dain23.common.mapper.CommonMapper">
+
+	<!-- 현장 정보 조회 -->
+	<select id="findPlace" resultType="Place">
+        SELECT
+		    dp.id,
+		    dp.code,
+		    dp.short_name,
+		    dp.full_name,
+		    (
+		        SELECT MIN(dl.install_dt)
+		        FROM dain_logger dl
+		        WHERE dl.place_id = dp.id
+		    ) AS install_dt
+		FROM dain_place dp
+		WHERE
+		    dp.code = #{placeCode}
+    </select>
+    
+    
+    <!-- 센서 설정 조회 -->
+    <select id="findGraphSet" resultType="SensorTypeSet">
+	    SELECT
+			dsts.sensor_type_id,
+			dsts.min_gauge,
+			dsts.max_gauge,
+			dsts.criteria_val1,
+			dsts.criteria_val2,
+			dsts.criteria_val3,
+			dst.main_graph_type,
+			dst.sub_graph_type
+		FROM dain_sensor_type_setting dsts
+		JOIN dain_sensor_type dst ON dst.id = dsts.sensor_type_id
+		WHERE
+			dsts.place_id = #{placeId}
+			AND dsts.hidden = false
+			AND dsts.used = true
+    </select>
+    
+    
+    <!-- 로거 정보 조회 -->
+    <select id="findLogger" resultType="Logger">
+	    SELECT
+		    dl.id,
+		    dl.code,
+		    dl.name,
+		    dl.location,
+		    DATE_FORMAT(dt.first_at, '%Y-%m-%d %H:%i:%s') AS first_at,
+		    DATE_FORMAT(dl.uploaded_at, '%Y-%m-%d %H:%i:%s') AS last_at,
+		    dl.uploaded_at - INTERVAL 24 HOUR AS search_at
+		FROM dain_logger dl
+		LEFT JOIN (
+		    SELECT
+		        logger_id,
+		        MIN(measured_at) AS first_at
+		    FROM
+		        data_${placeCode}
+		    GROUP BY logger_id
+		) dt ON dl.id = dt.logger_id
+		WHERE
+		    dl.place_id = #{placeId}
+		ORDER BY 
+			dl.code
+	</select>
+    
+    
+    <!-- 싸이클 측정 마지막 데이터 조회 -->
+    <select id="findLatestCycleData" resultType="CycleLatestData">
+	    SELECT
+			d.logger_id,
+			d.sensor_id,
+			ds.code AS sensor_code,
+			ds.name AS sensor_name,
+			ds.sensor_type_id,
+			dst.name AS sensorTypeName,
+			ds.location,
+			ROUND(d.initial_val, 3) AS initial_val,
+			ROUND(d.displace_val, 3) AS displace_val,
+			ROUND(d.changed_val, 3) AS changed_val,
+			dsts.criteria_val1,
+			dsts.group_order
+		FROM dain_logger dl
+		JOIN dain_sensor ds ON ds.logger_id = dl.id
+		JOIN dain_sensor_type_setting dsts ON dsts.sensor_type_id = ds.sensor_type_id 
+			AND dsts.place_id = dl.place_id AND dsts.hidden = false AND dsts.place_id = #{placeId}
+		JOIN dain_sensor_type dst ON dst.id = dsts.sensor_type_id
+		JOIN data_${placeCode} d ON d.logger_id = dl.id
+			AND d.sensor_id = ds.id
+		JOIN
+			(
+			    SELECT sensor_id, MAX(measured_at) AS max_measured_at
+			    FROM data_${placeCode}
+			    GROUP BY sensor_id
+			) AS ld
+		ON
+			d.sensor_id = ld.sensor_id
+			AND d.measured_at = ld.max_measured_at
+		WHERE
+			dl.place_id = #{placeId}
+			AND dl.cycle_check = true
+			AND ds.used = true
+    </select>
+    
+    
+    <!-- 이벤트 측정 마지막 데이터 조회 -->
+    <select id="findLatestEventData" resultType="EventLatestData">
+	    SELECT
+		    d.logger_id,
+		    d.sensor_id,
+		    ds.code AS sensor_code,
+		    ds.sensor_type_id,
+			dst.name AS sensorTypeName,
+			ds.location,
+		    d.measured_at AS last_measured_at,
+		    ROUND(d.displace_val, 3) AS displace_val,
+		    IFNULL(td.today_max_displace_val, 0) AS max_displace_val,
+		    IFNULL(td.today_data_count, 0) AS today_data_count,
+		    dsts.group_order
+		FROM dain_logger dl
+		JOIN dain_sensor ds ON ds.logger_id = dl.id
+		JOIN dain_sensor_type_setting dsts ON dsts.sensor_type_id = ds.sensor_type_id
+			AND dsts.place_id = #{placeId}
+		JOIN dain_sensor_type dst ON dst.id = dsts.sensor_type_id
+		JOIN (
+		    SELECT sensor_id, MAX(measured_at) AS max_measured_at
+		    FROM data_${placeCode}
+		    GROUP BY sensor_id
+		) AS ld
+		    ON ld.sensor_id = ds.id
+		JOIN data_${placeCode} d ON d.sensor_id = ld.sensor_id
+		   AND d.measured_at = ld.max_measured_at
+		LEFT JOIN (
+		    SELECT
+				sensor_id,
+			    ROUND(MAX(displace_val), 3) AS today_max_displace_val,
+			    COUNT(*) AS today_data_count
+			FROM data_${placeCode}
+			WHERE
+			    measured_at BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 1 DAY)
+			GROUP BY sensor_id
+		) AS td
+		    ON d.sensor_id = td.sensor_id
+		WHERE
+			dl.place_id = #{placeId}
+			AND dl.cycle_check = false
+			AND dsts.hidden = false
+			AND ds.used = true
+    </select>
+    
+    
+    <!-- 싸이클 측정 마지막 24시간 데이터 조회 -->
+    <select id="findCycleChartData" resultType="Map">
+	    SELECT
+		    d.logger_id,
+		    d.sensor_id,
+		    ds.sensor_type_id,
+		    ds.code AS sensor_code,
+		    d.measured_at,
+		    d.displace_val,
+		    d.changed_val,
+		    ds.location
+		FROM dain_logger dl
+		JOIN dain_sensor ds ON ds.logger_id = dl.id
+			AND ds.used = true
+		JOIN dain_sensor_type_setting dsts ON dsts.sensor_type_id = ds.sensor_type_id
+		JOIN data_${placeCode} d ON d.sensor_id = ds.id
+		WHERE
+			dl.id = #{loggerId}
+			AND dl.cycle_check = true
+		    AND d.is_hourly = true
+		    AND dsts.hidden = false
+			AND d.measured_at >= #{searchAt}
+		    AND d.used = true
+		    AND ds.sensor_type_id NOT IN (19, 20, 21)
+		ORDER BY
+			ds.code, d.measured_at
+    </select>
+    
+    
+    <!-- 이벤트 측정 현재 24시간 데이터 조회 -->
+    <select id="findEventChartData" resultType="Map">
+    	SELECT
+		    d.logger_id,
+		    d.sensor_id,
+			ds.sensor_type_id,
+		    ds.code AS sensor_code,
+		    d.measured_at,
+		    d.displace_val
+		FROM dain_logger dl
+		JOIN dain_sensor ds ON ds.logger_id = dl.id
+		JOIN dain_sensor_type_setting dsts ON dsts.sensor_type_id = ds.sensor_type_id
+		JOIN data_${placeCode} d ON d.sensor_id = ds.id
+		WHERE
+			dl.place_id = #{placeId}
+			AND dl.cycle_check = false
+			AND dsts.hidden = false
+			AND	d.measured_at >= NOW() - INTERVAL 24 HOUR
+		    AND d.used = true
+		ORDER BY 
+			ds.code, d.measured_at
+    </select>
+    
+    
+    <!-- 네비게이션용 로거, 센서 정보 조회 -->
+    <select id="findNavigation" resultType="Map">
+    	SELECT
+			ds.place_id,
+			dp.code AS place_code,
+			ds.logger_id,
+			dl.code AS logger_code,
+			dl.name AS logger_name,
+			ds.sensor_type_id,
+			dst.name AS sensor_type_name,
+			ds.id AS sensor_id,
+			ds.code AS sensor_code,
+			dsts.group_order
+		FROM dain_place dp
+		JOIN dain_sensor ds ON ds.place_id = dp.id
+			AND ds.used = true
+		JOIN dain_logger dl ON dl.id = ds.logger_id
+		JOIN dain_sensor_type_setting dsts ON dsts.sensor_type_id = ds.sensor_type_id
+			AND dsts.place_id = dp.id AND dsts.hidden = false
+		JOIN dain_sensor_type dst ON dst.id = ds.sensor_type_id
+		WHERE
+			dp.code = #{placeCode}
+    </select>
+    
+    
+    <!-- 개별 센서 설정 정보 조회 -->
+    <select id="findSensorSet" resultType="SensorTypeSet">
+	    SELECT
+			ds.place_id,
+		    ds.logger_id,
+		    ds.sensor_type_id,
+		    dst.code AS sensor_type_code,
+		    ds.id AS sensor_id,
+		    ds.code AS sensor_code,
+		    ds.name AS sensor_name,
+		    ds.location,
+		    dsts.min_gauge,
+		    dsts.max_gauge,
+		    dsts.criteria_val1,
+		    dsts.criteria_val2,
+		    dsts.criteria_val3,
+		    dsts.interval,
+		    dl.cycle_check
+		FROM dain_sensor ds
+		JOIN dain_sensor_type dst ON dst.id = ds.sensor_type_id
+		JOIN dain_sensor_type_setting dsts ON dsts.place_id = ds.place_id
+		    AND dsts.sensor_type_id = ds.sensor_type_id
+		JOIN dain_logger dl ON dl.id = ds.logger_id
+		WHERE
+		    ds.id = #{sensorId}
+    </select>
+    
+    
+    <!-- 로거내 모든 센서 정보 조회 -->
+    <select id="findSensorInLogger" resultType="SensorTypeSet">
+	    SELECT
+			dl.id AS logger_id,
+			ds.id AS sensor_id,
+			ds.code AS sensor_code,
+			dsts.min_gauge,
+		    dsts.max_gauge,
+			ds.location,
+			dl.cycle_check AS cycle_check
+		FROM dain_logger dl
+		JOIN dain_sensor ds ON ds.logger_id = dl.id
+			AND ds.used = true
+		JOIN dain_sensor_type_setting dsts ON dsts.place_id = ds.place_id
+		    AND dsts.sensor_type_id = ds.sensor_type_id
+		WHERE
+			dl.code = #{loggerCode}
+			<if test="sensorTypeId != 0">
+				AND ds.sensor_type_id = #{sensorTypeId}
+			</if>
+			AND dsts.hidden = false
+		ORDER BY
+			ds.code
+    </select>
+    
+	
+	<!-- 로거내 센서 데이터 통합 조회 -->
+	<select id="findSensorInLoggerData" resultType="Map">
+	    SELECT
+	        <if test="average">
+	            DATE(measured_at) AS measurement_date,
+	        </if>
+	        <if test="!average">
+	            DATE_FORMAT(measured_at, '%Y-%m-%d %H:%i:%s') AS measured_at,
+	        </if>
+	        <foreach collection="sensors" item="sensor" separator=",">
+	            <if test="average">
+	                ROUND(AVG(CASE WHEN sensor_id = #{sensor.sensorId} THEN ${column} END), 3) AS `${sensor.sensorCode}`
+	                <if test="sensor.cycleCheck == false">
+	                    , ROUND(AVG(CASE WHEN sensor_id = #{sensor.sensorId} THEN displace_val END), 3) AS kine
+	                </if>
+	            </if>
+	            <if test="!average">
+	                MAX(ROUND(CASE WHEN sensor_id = #{sensor.sensorId} THEN ${column} END, 3)) AS `${sensor.sensorCode}`
+	                <if test="sensor.cycleCheck == false">
+	                    , MAX(ROUND(CASE WHEN sensor_id = #{sensor.sensorId} THEN displace_val END, 3)) AS kine
+	                </if>
+	            </if>
+	        </foreach>
+	    FROM data_${placeCode}
+	    WHERE 
+	        logger_id = #{sensors[0].loggerId}
+	        AND measured_at >= #{start}
+	        AND measured_at <![CDATA[<=]]> #{end}
+	        AND used = true
+	        <if test="oclock">
+	            AND MINUTE(measured_at) = 0
+	            AND SECOND(measured_at) = 0
+	        </if>
+	    <if test="average">
+	        GROUP BY DATE(measured_at)
+	        ORDER BY measurement_date
+	    </if>
+	    <if test="!average">
+	        GROUP BY measured_at
+	        ORDER BY measured_at
+	    </if>
+	    <if test="excel != true">
+	        DESC LIMIT #{limit} OFFSET #{offset}
+	    </if>
+	</select>
+
+    
+    <!-- 개별 센서 차트 데이터 조회 -->
+    <select id="findSensorBasicChart" resultType="Map">
+		SELECT
+			d.measured_at,
+			d.displace_val,
+			d.changed_val,
+			dsts.criteria_val1,
+			dsts.criteria_val2,
+			dsts.criteria_val3,
+			ds.sensor_type_id
+		FROM dain_sensor ds
+		JOIN dain_sensor_type_setting dsts ON dsts.place_id = ds.place_id
+			AND dsts.sensor_type_id  = ds.sensor_type_id
+		JOIN data_${placeCode} d ON d.sensor_id = ds.id
+		WHERE
+			ds.id = #{sensorId}
+			AND d.measured_at >= #{start}
+			AND d.measured_at <![CDATA[<=]]> #{end}
+			<if test="cycleCheck or (!cycleCheck and oclock)">
+				AND d.is_hourly = true
+			</if>
+			AND ds.used = true
+		ORDER BY 
+			d.measured_at
+    </select>
+    
+
+    <!-- 센서 테이터 조회 -->
+    <select id="findSensorBasicData" resultType="Map">
+		SELECT
+			DATE_FORMAT(measured_at, '%Y-%m-%d %H:%i:%s') AS measured_at,
+			ROUND(correction_val, 3) AS correction_val,
+			ROUND(angle_val, 3) AS angle_val,
+			ROUND(displace_val, 3) AS displace_val,
+			ROUND(changed_val , 3) AS changed_val
+		FROM data_${placeCode}
+		WHERE
+			sensor_id = #{sensorId}
+			AND measured_at >= #{start}
+			AND measured_at <![CDATA[<=]]> #{end}
+			<if test="oclock">
+				AND is_hourly = true
+			</if>
+			AND used = true
+		ORDER BY
+			measured_at
+		<if test="excel != true">
+	    	DESC LIMIT #{limit} OFFSET #{offset}
+	    </if>
+    </select>
+    
+    
+    <!-- 개별 센서 일평균 차트 데이터 조회 -->
+    <select id="findSensorMaxAvgChart" resultType="Map">
+		SELECT
+			DATE(d.measured_at) AS measured_date,
+			ROUND(AVG(d.displace_val), 3) AS avg_displace_val,
+			ROUND(AVG(d.changed_val), 3) AS avg_changed_val,
+			MAX(dsts.criteria_val1) AS criteria_val1,
+			MAX(dsts.criteria_val2) AS criteria_val2,
+			MAX(dsts.criteria_val3) AS criteria_val3,
+			ds.sensor_type_id
+		FROM dain_sensor ds
+		JOIN dain_sensor_type_setting dsts ON dsts.place_id = ds.place_id
+			AND dsts.sensor_type_id  = ds.sensor_type_id
+		JOIN data_${placeCode} d ON d.sensor_id = ds.id
+		WHERE
+			ds.id = #{sensorId}
+			AND d.measured_at >= #{start}
+			AND measured_at <![CDATA[<=]]> #{end}
+			AND d.used = true
+		GROUP BY
+			DATE(d.measured_at)
+		ORDER BY
+			measured_date
+	</select>
+	
+	
+	<!-- 개별 센서 싸이클 일평균 테이터 조회 -->
+    <select id="findSensorCycleMaxAvgData" resultType="Map">
+	    SELECT
+			DATE(measured_at) AS measurement_date,
+		    ROUND(AVG(correction_val), 3) AS avg_correction_val,
+		    ROUND(MAX(correction_val), 3) AS max_correction_val,
+		    ROUND(AVG(angle_val), 3) AS avg_angle_val,
+		    ROUND(MAX(angle_val), 3) AS max_angle_val,
+		    ROUND(AVG(displace_val), 3) AS avg_displace_val,
+		    ROUND(MAX(displace_val), 3) AS max_displace_val,
+		    ROUND(AVG(changed_val), 3) AS avg_changed_val,
+		    ROUND(MAX(changed_val), 3) AS max_changed_val,
+		    ROUND(MIN(changed_val), 3) AS min_changed_val
+		FROM data_${placeCode}
+		WHERE
+			sensor_id = #{sensorId}
+			AND measured_at >= #{start}
+			AND measured_at <![CDATA[<=]]> #{end}
+			AND used = true
+			AND raw_val <![CDATA[<>]]> 0
+		GROUP BY
+		    DATE(measured_at)
+		ORDER BY
+			measurement_date
+		<if test="excel != true">
+	    	DESC LIMIT #{limit} OFFSET #{offset}
+	    </if>
+    </select>
+    
+	
+	<!-- 개별 센서 이벤트 일평균 테이터 조회 -->
+    <select id="findSensorEventMaxAvgData" resultType="Map">
+		SELECT
+			DATE(d.measured_at) AS measurement_date,
+			ROUND(AVG(d.displace_val), 3) AS avg_displace_val,
+			ROUND(MAX(d.displace_val), 3) AS max_displace_val,
+			COUNT(*) AS record_count
+		FROM dain_sensor ds
+		JOIN dain_sensor_type_setting dsts ON dsts.place_id = ds.place_id
+			AND dsts.sensor_type_id  = ds.sensor_type_id
+		JOIN data_${placeCode} d ON d.sensor_id = ds.id
+		WHERE
+			ds.id = #{sensorId}
+			AND d.measured_at >= #{start}
+			AND measured_at <![CDATA[<=]]> #{end}
+			AND d.used = true
+		GROUP BY
+			DATE(d.measured_at)
+		ORDER BY
+			measurement_date
+		<if test="excel != true">
+	    	DESC LIMIT #{limit} OFFSET #{offset}
+	    </if>
+    </select>
+    
+</mapper>

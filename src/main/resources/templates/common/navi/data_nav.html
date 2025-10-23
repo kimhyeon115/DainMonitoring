@@ -1,0 +1,62 @@
+<div id="layoutSidenav_nav">
+	<nav class="sb-sidenav accordion sb-sidenav-dark" id="sidenavAccordion">
+		<div class="sb-sidenav-menu">
+			<div class="nav">
+                <div class='m-1'></div>
+				
+				<a class="nav-link collapsed pb-1" id="sys" href="#" data-toggle="collapse" 
+					data-target="#collapse_sys" aria-expanded="false" aria-controls="collapseSys" style="width:190px;">
+					
+				    <div class="sb-nav-link-icon"><i class="fas fa-tags fa-sm text-white-50"></i></div>
+				    전체
+				    <div class="sb-sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
+				</a>
+				<div class="collapse" id="collapse_sys" aria-labelledby="headingOne" data-parent="#sidenavAccordion">
+                    <nav class="sb-sidenav-menu-nested nav">
+						<th:block th:each="nav, iterStat : ${model.systemNavigation}">
+						    <a class="find nav-link my-0 pb-1" th:id="${nav[0].logger_code + ':total'}">
+						        <span th:text="'SYSTEM_' + ${#numbers.formatInteger(iterStat.index + 1, 2)}"></span>
+						    </a>
+						</th:block>
+				    </nav>
+				</div>
+	
+				<th:block th:each="navi, iter : ${model.basicNavigation}">
+					<a class="nav-link collapsed pb-1" th:id="|num_${iter.index}|" 
+						href="#" data-toggle="collapse" th:data-target="|#collapse_num_${iter.index}|" 
+						aria-expanded="false" th:aria-controls="|collapse_${iter.index}|" style="width:190px;">
+						
+					    <div class="sb-nav-link-icon"><i class="fas fa-tags fa-sm text-white-50"></i></div>
+						<span th:text="${navi[0].sensor_type_name}"></span>
+					    <div class="sb-sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
+					</a>
+					
+					<div class="collapse" th:id="|collapse_num_${iter.index}|" aria-labelledby="headingOne" data-parent="#sidenavAccordion">
+						
+						<th:block th:if="${navi[0].sensor_type_id == 19}">
+							<nav class="sb-sidenav-menu-nested nav">
+						        <a class="find nav-link my-0 pb-1" th:id="${navi[0].logger_code + ':graph:' + navi[0].sensor_type_id}">
+									<span>누적그래프</span>
+					            </a>
+						    </nav>
+							<nav class="sb-sidenav-menu-nested nav">
+						        <a class="find nav-link my-0 pb-1" th:id="${navi[0].logger_code + ':data:' + navi[0].sensor_type_id}">
+									<span>누적데이터</span>
+					            </a>
+						    </nav>
+						</th:block>
+						
+						<th:block th:each="na : ${navi}">
+							<nav class="sb-sidenav-menu-nested nav">
+						        <a class="find nav-link my-0 pb-1" th:id="${na.sensor_id}">
+									<span th:text="${na.sensor_code}"></span>
+					            </a>
+						    </nav>
+						</th:block>
+					</div>
+				</th:block>
+				
+			</div>
+		</div>
+	</nav>
+</div>

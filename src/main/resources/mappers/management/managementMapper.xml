@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dain23.management.mapper.ManagementMapper">
+    
+    <select id="selectManagementInUse" resultType="Management">
+	    SELECT 
+			dp.id AS placeId,
+			dc.short_name AS comShortName,
+			dc.full_name AS comFullName,
+			dp.code AS placeCode,
+			dp.run,
+			dp.`open`,
+			dp.used,
+			COALESCE(dp.url, '#') AS url,
+			dp.short_name AS placeShortName
+		FROM dain_place dp 
+		JOIN dain_company dc 
+			ON dc.id = dp.company_id
+		WHERE 
+			dp.used = true
+			AND code != 'management'
+		ORDER BY 
+			dp.short_name
+	</select>
+	
+	<select id="selectPlaceLogger" resultType="String">
+		SELECT 
+			code  
+		FROM 
+			dain_logger 
+		WHERE 
+			place_id = #{placeId}
+			AND used = true 
+		ORDER BY 
+			code ASC
+	</select>
+	
+	<select id="selectLoggerStatus" resultType="LoggerStatus">
+	    SELECT 
+	    	dl.id AS loggerId,
+			dl.place_id,
+			dl.code AS loggerCode,
+			dl.name AS loggerName,
+			dl.cdma_no,
+			dl.install_dt,
+			dl.uploaded_at,
+			dc.id AS pcId,
+			dc.name AS pcName 
+		FROM dain_logger dl 
+		JOIN dain_computer dc 
+			ON dc.id = dl.computer_id
+		WHERE 
+			dl.code = #{loggerCode}
+			AND dl.used = true
+	</select>
+	
+	<update id="updateLoggerInfo">
+		UPDATE 
+			dain_logger  
+		SET 
+			name = #{params.name},
+			install_dt = #{params.install_dt},
+			cdma_no = #{params.cdma_no},
+			computer_id = #{params.computer_id}
+		WHERE 
+			code = #{params.code}
+	</update>
+	
+	<update id="updateOpenOrClose">
+		UPDATE dain_place SET open = #{params.open} WHERE id = #{params.id};
+	</update>
+	
+	<select id="selectLoggerDetail" resultType="Map">
+		SELECT 
+			dp.short_name AS '현장명',
+			dl.name AS '구분명',
+			dl.code AS '로거명',
+			dl.cdma_no AS 'CDMA NO',
+			dl.install_dt AS '최초측정일',
+			dc.name AS '수집 PC',
+			CASE
+				WHEN dl.used = true THEN '운영'
+				ELSE '종료'
+			END AS '운영상태'
+		FROM dain_logger dl 
+		JOIN dain_place dp 
+			ON dp.id = dl.place_id 
+		JOIN dain_computer dc 
+			ON dc.id = dl.computer_id
+		ORDER BY dl.used DESC, dp.short_name, dl.code
+	</select>
+	
+</mapper>
+
+
+
+       

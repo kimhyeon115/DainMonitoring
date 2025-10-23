@@ -1,0 +1,834 @@
+
+<!-- DMS >> dmsSetting 컨텐츠 -->
+<div class="container-xl mt-3">
+	<h1>DMS > DMS 설정</h1>
+	<div class="dms-append-card">
+		<div class="dms-set-title" data-group="computer" onclick="HideDmsTitleCard(this)">PC 정보
+			<img src="/management/images/chevrons-right.png" alt="아이콘" style="width:24px; height:24px;">
+		</div>
+	  	<div class="mini-container">
+			<div class="left-panel">
+				<ul id="computer-ul">
+					<th:block th:each="computer : ${selectComputerCombo}">
+				        <li th:text="${computer.name}" 
+							th:data-id="${computer.id}"
+							th:data-name="${computer.name}"
+							th:data-ip="${computer.ip}"
+							th:data-description="${computer.description}"
+							ondblclick="SelectedComputerLi(this)">
+						</li>
+					</th:block>
+				</ul>
+		    </div>
+			
+			<div class="right-panel">
+				<input type="hidden" id="computer-id" value="0">
+				<div class="right-panel-inner">
+					<div class="dms-form-group">
+						<div style="width: 129px;">
+							<label class="dms-form-label">PC 명칭</label>
+						</div>
+						<div style="display:flex; gap:10px; flex:1;">
+					        <input type="text" id="computer-name" class="form-control" placeholder="* 필수 입력 *"
+								oninput="validateInputChange(this)">
+							<a id="checking-computer-code" class="btn btn-6 btn-outline-warning" 
+								onclick="DuplicateCheck(this, 'computer')">중복확인</a>
+						</div>
+					</div>
+					<div class="form-group">
+						<label class="dms-form-label">PC IP</label>
+						<input type="text" id="computer-ip" class="form-control" placeholder="* 필수 입력 *">
+					</div>
+					<div class="computer-form-group">
+	  					<label class="dms-form-label">상세 설명</label>
+	  					<textarea id="computer-description" class="form-control"></textarea>
+	  				</div>
+					<div class="dms-append-button">
+						<div>
+							<a class="btn btn-6 btn-outline-primary" onclick="ResetDmsForm('computer')">초기화</a>
+						</div>
+						<div>
+							<a class="btn btn-6 btn-outline-success mx-1" 
+								onclick="UpsertDmsComputerInfoForm(true)">저장</a>
+							<a class="btn btn-6 btn-outline-danger" 
+								onclick="UpsertDmsComputerInfoForm(false)">삭제</a>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="dms-append-card">
+		<div class="dms-set-title" data-group="company" onclick="HideDmsTitleCard(this)">업체 정보
+			<img src="/management/images/chevrons-right.png" alt="아이콘" style="width:24px; height:24px;">
+		</div>
+	  	<div class="mini-container">
+			<div class="left-panel">
+				<ul id="company-ul">
+					<th:block th:each="company : ${selectCompanyCombo}">
+				        <li th:text="${company.full_name}" 
+							th:data-id="${company.id}"
+							th:data-short_name="${company.short_name}"
+							th:data-full_name="${company.full_name}"
+							th:data-tel="${company.tel}"
+							th:data-address="${company.address}"
+							ondblclick="SelectedCompanyLi(this)">
+						</li>
+					</th:block>
+				</ul>
+		    </div>
+			
+			<div class="right-panel">
+				<input type="hidden" id="company-id" value="0">
+				<div class="right-panel-inner">
+					<div class="dms-form-group">
+						<div style="width: 129px;">
+							<label class="dms-form-label">법인 명칭</label>
+						</div>
+						<div style="display:flex; gap:10px; flex:1;">
+					        <input type="text" id="company-full-name" class="form-control" placeholder="* 필수 입력 *"
+								oninput="validateInputChange(this)">
+							<a id="checking-company-code" class="btn btn-6 btn-outline-warning" 
+								onclick="DuplicateCheck(this, 'company')">중복확인</a>
+						</div>
+					</div>
+					<div class="form-group">
+						<label class="dms-form-label">약식 명칭</label>
+						<input type="text" id="company-short-name" class="form-control" placeholder="* 필수 입력 *">
+					</div>
+					<div class="form-group">
+	  					<label class="dms-form-label">공식 연락처</label>
+	  					<input type="text" id="company-tel" class="form-control">
+	  				</div>
+					<div class="form-group">
+						<label class="dms-form-label">법인 주소</label>
+						<input type="text" id="company-address" class="form-control">
+					</div>
+					<div class="dms-append-button">
+						<div>
+							<a class="btn btn-6 btn-outline-primary" onclick="ResetDmsForm('company')">초기화</a>
+						</div>
+						<div>
+							<a class="btn btn-6 btn-outline-success mx-1" 
+								onclick="UpsertDmsCompanyInfoForm(true)">저장</a>
+							<a class="btn btn-6 btn-outline-danger" 
+								onclick="UpsertDmsCompanyInfoForm(false)">삭제</a>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="dms-append-card">
+		<div class="dms-set-title" data-group="place" onclick="HideDmsTitleCard(this)">현장 정보
+			<img src="/management/images/chevrons-right.png" alt="아이콘" style="width:24px; height:24px;">
+		</div>
+	  	<div class="container">
+		    <div class="left-panel">
+				<ul id="place-ul">
+					<th:block th:each="place : ${selectPlaceCombo}">
+				        <li th:text="${place.short_name}" 
+							th:data-id="${place.id}"
+							th:data-company_id="${place.company_id}"
+							th:data-code="${place.code}"
+							th:data-short_name="${place.short_name}"
+							th:data-full_name="${place.full_name}"
+							th:data-manager="${place.manager}"
+							th:data-url="${place.url}"
+							th:data-user="${place.user}"
+							th:data-password="${place.password}"
+							th:data-run="${place.run}"
+							th:data-open="${place.open}"
+							th:data-user_id="${place.user_id}"
+							ondblclick="SelectedPlaceLi(this)">
+						</li>
+					</th:block>
+				</ul>
+		    </div>
+			
+		    <div class="right-panel">
+				<input type="hidden" id="place-id" value="0">
+				<input type="hidden" id="place-uid" value="0">
+				<div class="right-panel-inner">
+					<div class="dms-form-group">
+						<div style="width: 129px;">
+							<label class="dms-form-label">현장 코드</label>
+						</div>
+						<div style="display:flex; gap:10px; flex:1;">
+					        <input type="text" id="place-code" class="form-control" placeholder="* 필수 입력 *"
+								oninput="validateEnglish(this, 'place')" onchange="autoFillConnection(this.value)">
+							<a id="checking-place-code" class="btn btn-6 btn-outline-warning" 
+								onclick="DuplicateCheck(this, 'place')">중복확인</a>
+						</div>
+					</div>
+					<div class="form-group">
+						<label class="dms-form-label">현장 명칭</label>
+						<input type="text" id="place-short-name" class="form-control" placeholder="* 필수 입력 *">
+					</div>
+					<div class="form-group">
+	  					<label class="dms-form-label">현장 상세 명칭</label>
+	  					<input type="text" id="place-full-name" class="form-control">
+	  				</div>
+					<div class="form-group">
+						<label class="dms-form-label">담당자</label>
+						<input type="text" id="place-manager" class="form-control">
+					</div>
+					<div class="form-group">
+						<label class="dms-form-label">웹 URL</label>
+						<input type="text" id="place-url" class="form-control" placeholder="* 필수 입력 *">
+					</div>
+					<div class="form-group">
+						<label class="dms-form-label">계정명</label>
+						<input type="text" id="place-user" class="form-control" placeholder="* 필수 입력 *">
+					</div>
+					<div class="form-group">
+						<label class="dms-form-label">비밀번호</label>
+						<input type="text" id="place-password" class="form-control" placeholder="* 필수 입력 *">
+					</div>
+					<div class="dms-form-group">
+						<div>
+							<span>현장 운영 여부</span>
+							<label class="form-check-single form-switch">
+								<input type="checkbox" id="place-run" class="form-check-input">
+							</label>
+						</div>
+						<div>
+							<span>외부 오픈 여부</span>
+							<label class="form-check-single form-switch">
+								<input type="checkbox" id="place-open" class="form-check-input">
+							</label>
+						</div>
+					</div>
+					<div class="form-group">
+						<span>클라이언트</span>
+						<label class="dms-form-check form-check-single form-switch">
+							<select id="place-company-id" class="form-select">
+								<option th:each="company : ${selectCompanyCombo}" 
+								  	th:text="${company.full_name}" th:value="${company.id}"
+									th:selected="${company.id == 2}"></option>
+							</select>
+						</label>
+					</div>
+					<div class="dms-append-button">
+						<div>
+							<a class="btn btn-6 btn-outline-primary" onclick="ResetDmsForm('place')">초기화</a>
+						</div>
+						<div>
+							<a class="btn btn-6 btn-outline-success mx-1" 
+								onclick="UpsertDmsPlaceInfoForm(true)">저장</a>
+							<a class="btn btn-6 btn-outline-danger" 
+								onclick="UpsertDmsPlaceInfoForm(false)">삭제</a>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="dms-append-card">
+		<div class="dms-set-title" data-group="logger" onclick="HideDmsTitleCard(this)">로거 정보
+			<img src="/management/images/chevrons-right.png" alt="아이콘" style="width:24px; height:24px;">
+		</div>
+	  	<div class="container">
+			<div class="left-panel">
+				<ul id="logger-place-ul">
+					<th:block th:each="place : ${selectPlaceCombo}">
+				        <li th:text="${place.short_name}" 
+							th:data-id="${place.id}"
+							ondblclick="SelectedLoggerPlaceLi(this)">
+						</li>
+					</th:block>
+				</ul>
+		    </div>
+			<div class="left-panel">
+				<ul id="logger-ul">
+				</ul>
+		    </div>
+			<div class="right-panel">
+				<input type="hidden" id="logger-id" value="0">
+				<input type="hidden" id="logger-place-id" value="0">
+				<div class="right-panel-inner">
+					<div class="dms-form-group">
+						<div style="width: 129px;">
+							<label class="dms-form-label">로거 코드</label>
+						</div>
+						<div style="display:flex; gap:10px; flex:1;">
+					        <input type="text" id="logger-code" class="form-control" placeholder="* 필수 입력 *"
+								oninput="validateEnglish(this, 'logger')">
+							<a id="checking-logger-code" class="btn btn-6 btn-outline-warning" 
+								onclick="DuplicateCheck(this, 'logger')">중복확인</a>
+						</div>
+					</div>
+					<div class="form-group">
+						<label class="dms-form-label">로거 명칭</label>
+						<input type="text" id="logger-name" class="form-control" placeholder="* 필수 입력 *">
+					</div>
+					<div class="form-group">
+	  					<label class="dms-form-label">설치 위치</label>
+	  					<input type="text" id="logger-location" class="form-control">
+	  				</div>
+					<div class="form-group">
+						<label class="dms-form-label">C/N</label>
+						<input type="text" id="logger-cdma-no" class="form-control">
+					</div>
+					<div class="form-group">
+						<label class="dms-form-label">설치 일자</label>
+						<input type="date" id="logger-install-dt" class="form-control">
+					</div>
+					<div class="form-group">
+						<label class="dms-form-label">파일 경로</label>
+						<input type="text" id="logger-file-path" class="form-control" placeholder="* 필수 입력 *">
+					</div>
+					<div class="form-group">
+						<span>수집 PC</span>
+						<label class="dms-form-check form-check-single form-switch">
+							<select id="logger-computer-id" class="form-select">
+								<option th:each="computer : ${selectComputerCombo}" 
+								  	th:text="${computer.name}" th:value="${computer.id}"
+									th:selected="${computer.id == 1}"></option>
+							</select>
+						</label>
+					</div>
+					<div class="form-group">
+						<span>측정 방식</span>
+						<label class="dms-form-check form-check-single form-switch">
+							<select id="logger-cycle-check" class="form-select">
+								<option value="1" selected>주기적인 측정방식 (일반)</option>
+								<option value="0">이벤트성 측정방식 (진동)</option>
+							</select>
+						</label>
+					</div>
+					<div class="dms-form-group">
+						<div>
+							<span>업로드 실행 여부</span>
+							<label class="form-check-single form-switch">
+								<input type="checkbox" id="logger-run" class="form-check-input">
+							</label>
+						</div>
+					</div>
+					
+					<div class="dms-append-button">
+						<div>
+							<a class="btn btn-6 btn-outline-primary" onclick="ResetDmsForm('logger')">초기화</a>
+						</div>
+						<div>
+							<a class="btn btn-6 btn-outline-success mx-1" 
+								onclick="UpsertDmsLoggerInfoForm(true)">저장</a>
+							<a class="btn btn-6 btn-outline-danger" 
+								onclick="UpsertDmsLoggerInfoForm(false)">삭제</a>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="dms-append-card">
+		<div class="dms-set-title" data-group="sensor" onclick="HideDmsTitleCard(this)">센서 정보
+			<img src="/management/images/chevrons-right.png" alt="아이콘" style="width:24px; height:24px;">
+		</div>
+	  	<div class="container">
+			<div class="left-panel">
+				<ul id="sensor-place-ul">
+					<th:block th:each="place : ${selectPlaceCombo}">
+				        <li th:text="${place.short_name}" 
+							th:data-id="${place.id}"
+							th:data-code="${place.code}"
+							ondblclick="SelectedSensorPlaceLi(this)">
+						</li>
+					</th:block>
+				</ul>
+		    </div>
+			<div class="left-middle-panel">
+				<div>
+					<label class="form-check-single sensor-logger">
+						<select id="sensor-logger-combo" class="form-select" 
+							onchange="validateSensorLoggerChange(this)">
+							<option selected disabled>현장을 선택하세요</option>
+						</select>
+					</label>
+				</div>
+				<ul id="sensor-ul">
+				</ul>
+		    </div>
+			<div class="right-panel">
+				<input type="hidden" id="sensor-place-id" value="0">
+				<input type="hidden" id="sensor-logger-id" value="0">
+				<input type="hidden" id="sensor-id" value="0">
+				<div class="right-panel-inner">
+					<div class="form-group">
+						<label class="dms-form-label">현장 코드</label>
+						<input type="text" id="sensor-place-code" class="form-control" placeholder="* 필수 입력 *" disabled>
+					</div>
+					<div class="form-group">
+	  					<label class="dms-form-label">로거 코드</label>
+	  					<input type="text" id="sensor-logger-code" class="form-control" placeholder="* 필수 입력 *" disabled>
+	  				</div>
+					<div class="form-group">
+						<div style="width: 109px;">
+							<label class="dms-form-label">센서 코드</label>
+						</div>
+						<div style="display: flex; gap: 10px; flex: 1;">
+							<input type="text" id="sensor-code" class="form-control" placeholder="* 필수 입력 *" 
+								oninput="validateEnglish(this, 'sensor')">
+							<a id="checking-sensor-code" class="btn btn-6 btn-outline-warning" 
+								onclick="DuplicateCheck(this, 'sensor')">중복확인</a>
+						</div>
+					</div>
+					<div class="form-group">
+	  					<label class="dms-form-label">센서 명칭</label>
+	  					<input type="text" id="sensor-name" class="form-control" placeholder="* 필수 입력 *">
+	  				</div>
+					<div class="form-group">
+						<label class="dms-form-label">설치 위치</label>
+						<input type="text" id="sensor-location" class="form-control">
+					</div>
+					<div class="form-group">
+	  					<label class="dms-form-label">설치 일시</label>
+	  					<input type="datetime-local" step="1" id="sensor-install-dt" class="form-control" placeholder="* 필수 입력 *">
+	  				</div>
+					<div class="form-group">
+						<span>센서 타입</span>
+						<label class="dms-form-check form-check-single form-switch">
+							<select id="sensor-sensor-type" class="form-select">
+								<option value="" selected disabled>= 선택 =</option>
+								<th:block th:each="type : ${selectSensorTypeCombo}">
+									<option th:value="${type.id}" th:text="${type.code}"></option>
+								</th:block>
+							</select>
+						</label>
+					</div>
+					<div class="form-group">
+						<label class="dms-form-label">데이터 순번</label>
+						<input type="number" id="sensor-order" class="form-control" placeholder="* 필수 입력 *" step="1" min="0">
+					</div>
+					<div class="dms-append-button">
+						<div>
+							<a class="btn btn-6 btn-outline-primary" 
+								onclick="ResetDmsForm('sensor')">초기화</a>
+						</div>
+						<div>
+							<a class="btn btn-6 btn-outline-success mx-1" 
+								onclick="UpsertDmsSensorInfoForm(true)">저장</a>
+							<a class="btn btn-6 btn-outline-danger" 
+								onclick="UpsertDmsSensorInfoForm(false)">삭제</a>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="dms-middle-title">센서 적용 계산식 설정</div>
+		<div class="container">
+			<div class="left-max-panel">
+				<div class="table-fiter-combo">
+					<label class="form-check-single sensor-logger">
+						<select id="sensor-logger-combo" class="form-select" 
+							onchange="ApplyCalculationChangeFilter(this)">
+							<option value="" selected>전체</option>
+							<option value="correction">보정값 (correction)</option>
+							<option value="angle">각도값 (angle)</option>
+							<option value="displace">물리량 (displace)</option>
+						</select>
+					</label>
+				</div>
+				<table class="table card-table table-vcenter text-nowrap datatable">
+					<thead>
+						<th style="width: 15%;">적용 항목</th>
+						<th style="width: 35%;">계산식</th>
+						<th style="width: 25%;">적용 시작</th>
+						<th style="width: 25%;">적용 종료</th>
+					</thead>
+					<tbody id="apply-calculation-body"></tbody>
+				</table>
+			</div>
+			<div class="right-panel">
+				<div class="right-panel-small-inner">
+					<div class="form-group">
+						<span>적용 항목</span>
+						<label class="dms-form-small-check form-check-single">
+							<select id="sensor-target-column" class="form-select" 
+								onchange="AppylTargetChangeFilterCalculationCombo()">
+								<option value="" selected disabled>= 선택 =</option>
+								<option value="correction">보정값 (correction)</option>
+								<option value="angle">각도값 (angle)</option>
+								<option value="displace">물리량 (displace)</option>
+							</select>
+						</label>
+					</div>
+					<div class="form-group">
+						<span>적용 공식</span>
+						<label class="dms-form-small-check form-check-single">
+							<select id="sensor-apply-calculation" class="form-select" 
+								onchange="ApplyCalculationChangeCombo(this)">
+								<option value="" selected disabled>= 선택 =</option>
+								<th:block th:each="cal : ${selectCalculationCombo}">
+							        <option th:text="${cal.formula}" th:value="${cal.formula}" 
+										th:data-id="${cal.id}" th:data-target_column="${cal.target_column}">
+									</option>
+								</th:block>
+							</select>
+						</label>
+					</div>
+					<div class="form-group">
+						<label class="dms-form-label">A 대입 값</label>
+						<input type="text" id="param-a-val" class="form-control" 
+							oninput="ParamOnInputChangeCalculation(this)">
+					</div>
+					<div class="form-group">
+						<label class="dms-form-label">B 대입 값</label>
+						<input type="text" id="param-b-val" class="form-control" 
+							oninput="ParamOnInputChangeCalculation(this)">
+					</div>
+					<div class="form-group">
+						<label class="dms-form-label">C 대입 값</label>
+						<input type="text" id="param-c-val" class="form-control" 
+							oninput="ParamOnInputChangeCalculation(this)">
+					</div>
+					<div class="form-group">
+						<label class="dms-form-label">D 대입 값</label>
+						<input type="text" id="param-d-val" class="form-control" 
+							oninput="ParamOnInputChangeCalculation(this)">
+					</div>
+					<div class="form-group">
+						<label class="dms-form-label">E 대입 값</label>
+						<input type="text" id="param-e-val" class="form-control" 
+							oninput="ParamOnInputChangeCalculation(this)">
+					</div>
+					<div class="form-group">
+						<label class="dms-form-label">최종 계산식</label>
+						<input type="text" id="final-calculation" class="form-control" disabled>
+					</div>
+					<div class="form-group">
+	  					<label class="dms-form-label">적용 시작일시</label>
+	  					<input type="datetime-local" step="1" id="sensor-calculation-start" class="form-control">
+	  				</div>
+					<div class="form-group">
+	  					<label class="dms-form-label">적용 종료일시</label>
+	  					<input type="datetime-local" step="1" id="sensor-calculation-end" class="form-control">
+						<img src="/management/images/alert-circle.svg" alt="아이콘" style="width:24px; height:24px;">
+	  				</div>
+					<div class="dms-append-cal-button">
+						<div>
+							<a class="btn btn-6 btn-outline-primary" 
+								onclick="ResetDmsForm('applyCalculation')">초기화</a>
+						</div>
+						<div>
+							<a class="btn btn-6 btn-outline-success mx-1" onclick="InsertDmsSensorApplyCalculation()">저장</a>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="dms-middle-title">센서 적용 초기치 설정</div>
+		<div class="mini-container">
+			<div class="left-max-panel">
+				<div class="table-fiter-combo">
+					<label class="form-check-single sensor-logger">
+						<select id="sensor-logger-combo" class="form-select" disabled>
+							<option selected>초기값 (initial)</option>
+						</select>
+					</label>
+				</div>
+				<table class="table card-table table-vcenter text-nowrap datatable">
+					<thead>
+						<th style="width: 15%;">적용 항목</th>
+						<th style="width: 18%;">초기 측정값</th>
+						<th style="width: 17%;">초기 물리량</th>
+						<th style="width: 25%;">적용 시작</th>
+						<th style="width: 25%;">적용 종료</th>
+					</thead>
+					<tbody id="sensor-initial-body"></tbody>
+				</table>
+			</div>
+			<div class="right-panel">
+				<div class="right-panel-small-inner">
+					<div class="form-group">
+						<label class="dms-form-label">적용 항목</label>
+						<input type="text" class="form-control" value="초기값 (initial)" disabled>
+					</div>
+					<div class="form-group">
+						<label class="dms-form-label">센서 코드</label>
+						<input type="text" id="initial-sensor-code" class="form-control" disabled>
+					</div>
+					<div class="form-group">
+						<label class="dms-form-label">초기 측정값</label>
+						<input type="text" id="initial-sensor-val" class="form-control" 
+							oninput="ParamOnInputChangeCalculation(this)">
+					</div>
+					<div class="form-group">
+	  					<label class="dms-form-label">적용 시작일시</label>
+	  					<input type="datetime-local" step="1" id="sensor-initial-start" class="form-control">
+	  				</div>
+					<div class="form-group">
+	  					<label class="dms-form-label">적용 종료일시</label>
+	  					<input type="datetime-local" step="1" id="sensor-initial-end" class="form-control">
+						<img src="/management/images/alert-circle.svg" alt="아이콘" style="width:24px; height:24px;">
+	  				</div>
+					<div class="dms-append-cal-button">
+						<div>
+							<a class="btn btn-6 btn-outline-primary" 
+								onclick="ResetDmsForm('sensorInitial')">초기화</a>
+						</div>
+						<div>
+							<a class="btn btn-6 btn-outline-success mx-1" onclick="InsertDmsSensorInitial()">저장</a>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="dms-append-card">
+		<div class="dms-set-title" data-group="sensorType" onclick="HideDmsTitleCard(this)">센서타입 정보
+			<img src="/management/images/chevrons-right.png" alt="아이콘" style="width:24px; height:24px;">
+		</div>
+	  	<div class="small-container">
+			<div class="left-panel">
+				<ul id="sensor-type-ul">
+					<th:block th:each="type : ${selectSensorTypeCombo}">
+				        <li th:text="${type.code}" 
+							th:data-id="${type.id}" 
+							th:data-code="${type.code}" 
+							th:data-name="${type.name}"
+							ondblclick="SelectedSensorTypeLi(this)">
+						</li>
+					</th:block>
+				</ul>
+			</div>
+			<div class="right-panel">
+				<input type="hidden" id="sensor-type-id" value="0">
+				<div class="right-panel-inner">
+					<div class="form-group">
+						<div style="width: 109px;">
+							<label class="dms-form-label">센서 타입 코드</label>
+						</div>
+						<div style="display: flex; gap: 10px; flex: 1;">
+							<input type="text" id="sensor-type-code" class="form-control" placeholder="* 필수 입력 *" 
+								oninput="validateEnglish(this, 'sensortype')">
+							<a id="checking-sensor-type-code" class="btn btn-6 btn-outline-warning" 
+								onclick="DuplicateCheck(this, 'sensortype')">중복확인</a>
+						</div>
+					</div>
+					<div class="form-group">
+	  					<label class="dms-form-label">센서 타입 명칭</label>
+	  					<input type="text" id="sensor-type-name" class="form-control" placeholder="* 필수 입력 *">
+	  				</div>
+					<div class="dms-append-button">
+						<div>
+							<a class="btn btn-6 btn-outline-primary" 
+								onclick="ResetDmsForm('sensorType')">초기화</a>
+						</div>
+						<div>
+							<a class="btn btn-6 btn-outline-success mx-1" 
+								onclick="UpsertDmsSensorTypeInfoForm(true)">저장</a>
+							<a class="btn btn-6 btn-outline-danger" 
+								onclick="UpsertDmsSensorTypeInfoForm(false)">삭제</a>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="dms-middle-title">현장별 센서타입 설정</div>
+		<div class="container">
+			<div class="left-panel">
+				<ul id="sensor-type-place-ul">
+					<th:block th:each="place : ${selectPlaceCombo}">
+				        <li th:text="${place.short_name}" 
+							th:data-id="${place.id}"
+							th:data-short_name="${place.short_name}"
+							ondblclick="SelectedSensorTypePlaceLi(this)">
+						</li>
+					</th:block>
+				</ul>
+			</div>
+			<div class="left-panel">
+				<ul id="sensor-type-setting-ul">
+				</ul>
+		    </div>
+			<div class="right-panel">
+				<input type="hidden" id="sensor-type-setting-id" value="0">
+				<input type="hidden" id="sensor-type-setting-place-id" value="0">
+				<div class="right-panel-inner">
+					<div class="form-group">
+						<label class="dms-form-label">센서 타입 명칭</label>
+						<input type="text" id="sensor-type-setting-name" class="form-control" disabled>
+					</div>
+					<div class="form-group">
+						<label class="dms-form-label">화면 정렬 순서</label>
+						<input type="number" id="sensor-type-setting-group-order" class="form-control" 
+							placeholder="* 필수 입력 *" step="1" min="0">
+					</div>
+					<div class="form-group">
+						<label class="dms-form-label">차트 최소 값</label>
+						<input type="text" id="sensor-type-setting-min-gauge" class="form-control number-input" 
+							placeholder="* 필수 입력 *">
+					</div>
+					<div class="form-group">
+						<label class="dms-form-label">차트 최대 값</label>
+						<input type="text" id="sensor-type-setting-max-gauge" class="form-control number-input" 
+							placeholder="* 필수 입력 *">
+					</div>
+					<div class="form-group">
+						<label class="dms-form-label">1차 관리기준</label>
+						<input type="text" id="sensor-type-setting-criteria-val1" class="form-control number-input">
+					</div>
+					<div class="form-group">
+						<label class="dms-form-label">2차 관리기준</label>
+						<input type="text" id="sensor-type-setting-criteria-val2" class="form-control number-input">
+					</div>
+					<div class="form-group">
+						<label class="dms-form-label">3차 관리기준</label>
+						<input type="text" id="sensor-type-setting-criteria-val3" class="form-control number-input">
+					</div>
+					<div class="form-group">
+						<label class="dms-form-label">설치 간격 (mm)</label>
+						<input type="number" id="sensor-type-setting-interval" class="form-control" step="1000" min="0">
+					</div>
+					<div class="form-group">
+						<span>숨김 여부</span>
+						<label class="dms-form-check form-check-single form-switch">
+							<select id="sensor-type-setting-hidden" class="form-select">
+								<option value="0" selected>화면에서 표시</option>
+								<option value="1">화면에서 숨김</option>
+							</select>
+						</label>
+					</div>
+					<div class="dms-append-button">
+						<div>
+							<a class="btn btn-6 btn-outline-primary" 
+								onclick="ResetDmsForm('sensorTypeSetting')">초기화</a>
+						</div>
+						<div>
+							<a class="btn btn-6 btn-outline-success mx-1" 
+								onclick="UpsertDmsSensorTypePlaceSensorTypeInfoForm()">저장</a>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="dms-append-card">
+		<div class="dms-set-title" data-group="calculation" onclick="HideDmsTitleCard(this)">계산식 정보
+			<img src="/management/images/chevrons-right.png" alt="아이콘" style="width:24px; height:24px;">
+		</div>
+	  	<div class="container">
+			<div class="left-big-panel">
+				<ul id="calculation-ul">
+					<th:block th:each="cal : ${selectCalculationCombo}">
+				        <li th:text="${cal.name}" 
+							th:data-id="${cal.id}" 
+							th:data-name="${cal.name}" 
+							th:data-formula="${cal.formula}" 
+							th:data-target_column="${cal.target_column}" 
+							th:data-description="${cal.description}" 
+							ondblclick="SelectedCalculationLi(this)">
+						</li>
+					</th:block>
+				</ul>
+		    </div>
+			<div class="right-panel">
+				<input type="hidden" id="calculation-id" value="0">
+				<div class="right-panel-inner">
+					<input type="hidden" id="calculation-id" value="0">
+					<div class="dms-form-group">
+						<div style="width: 129px;">
+							<label class="dms-form-label">계산식 명칭</label>
+						</div>
+						<div style="display:flex; gap:10px; flex:1;">
+					        <input type="text" id="calculation-name" class="form-control" 
+								placeholder="* 필수 입력 *" oninput="validateInputChange(this)">
+							<a id="checking-calculation-name" class="btn btn-6 btn-outline-warning" 
+								onclick="DuplicateCheck(this, 'calculation')">중복확인</a>
+						</div>
+					</div>
+					<div class="form-group">
+						<span>적용 항목</span>
+						<label class="dms-form-check form-check-single form-switch">
+							<select id="target-column" class="form-select" onchange="FilterCalculationButton()">
+								<option value="" selected disabled>= 선택 =</option>
+								<option value="correction">보정값 (correction)</option>
+								<option value="angle">각도값 (angle)</option>
+								<option value="displace">물리량 (displace)</option>
+							</select>
+						</label>
+					</div>
+					<div class="computer-form-group">
+	  					<label class="dms-form-label">상세 설명</label>
+	  					<textarea id="calculation-description" class="form-control"></textarea>
+	  				</div>
+					<div class="form-group-textra">
+						<label class="dms-form-label">계산 공식</label>
+						<input type="text" id="calculation-formula" class="form-control" placeholder="* 필수 입력 *" disabled>
+					</div>
+					<div class="form-group-cal-btn">
+						<div class="cal-label"></div>
+						<div>
+							<a id="btn-raw" class="btn btn-6 btn-outline-warning cal-big-btn" data-value="raw" 
+								onclick="AddCalculationButtonEvent(this)">원천값<br>raw</a>
+							<a id="btn-correction" class="btn btn-6 btn-outline-warning cal-big-btn" data-value="correction" 
+								onclick="AddCalculationButtonEvent(this)">보정값<br>correction</a>
+							<a id="btn-angle" class="btn btn-6 btn-outline-warning cal-big-btn" data-value="angle" 
+								onclick="AddCalculationButtonEvent(this)">각도값<br>angle</a>
+							<a id="btn-displace" class="btn btn-6 btn-outline-warning cal-big-btn" data-value="displace" 
+								onclick="AddCalculationButtonEvent(this)">물리량<br>displace</a>
+							<a id="btn-initial" class="btn btn-6 btn-outline-warning cal-big-btn" data-value="initial" 
+								onclick="AddCalculationButtonEvent(this)">초기값<br>initial</a>
+						</div>
+					</div>
+					<div class="form-group">
+						<div class="cal-label"></div>
+						<div>
+							<a class="btn btn-6 btn-outline-warning cal-btn" data-value="+" 
+								onclick="AddCalculationButtonEvent(this)">+</a>
+							<a class="btn btn-6 btn-outline-warning cal-btn" data-value="-" 
+								onclick="AddCalculationButtonEvent(this)">-</a>
+							<a class="btn btn-6 btn-outline-warning cal-btn" data-value="*" 
+								onclick="AddCalculationButtonEvent(this)">*</a>
+							<a class="btn btn-6 btn-outline-warning cal-btn" data-value="/" 
+								onclick="AddCalculationButtonEvent(this)">/</a>
+							<a class="btn btn-6 btn-outline-warning cal-btn" data-value="(" 
+								onclick="AddCalculationButtonEvent(this)">(</a>
+							<a class="btn btn-6 btn-outline-warning cal-btn" data-value=")" 
+								onclick="AddCalculationButtonEvent(this)">)</a>
+						</div>
+					</div>
+					<div class="form-group">
+						<div class="cal-label"></div>
+						<div>
+							<a class="btn btn-6 btn-outline-warning cal-btn" data-value="A" 
+								onclick="AddCalculationButtonEvent(this)">A</a>
+							<a class="btn btn-6 btn-outline-warning cal-btn" data-value="B" 
+								onclick="AddCalculationButtonEvent(this)">B</a>
+							<a class="btn btn-6 btn-outline-warning cal-btn" data-value="C" 
+								onclick="AddCalculationButtonEvent(this)">C</a>
+							<a class="btn btn-6 btn-outline-warning cal-btn" data-value="D" 
+								onclick="AddCalculationButtonEvent(this)">D</a>
+							<a class="btn btn-6 btn-outline-warning cal-btn" data-value="E" 
+								onclick="AddCalculationButtonEvent(this)">E</a>
+							<a class="btn btn-6 btn-outline-warning cal-btn" data-value="back" 
+								onclick="AddCalculationButtonEvent(this)">←</a>
+						</div>
+					</div>
+					<div class="form-group">
+						<div class="cal-label"></div>
+						<div>
+							<a class="btn btn-6 btn-outline-warning cal-btn" data-value="sin" 
+								onclick="AddCalculationButtonEvent(this)">sin</a>
+							<a class="btn btn-6 btn-outline-warning cal-btn" data-value="pi" 
+								onclick="AddCalculationButtonEvent(this)">pi</a>
+						</div>
+					</div>
+					<div class="dms-append-cal-button">
+						<div>
+							<a class="btn btn-6 btn-outline-primary" 
+								onclick="ResetDmsForm('calculation')">초기화</a>
+						</div>
+						<div>
+							<a class="btn btn-6 btn-outline-success mx-1" 
+								onclick="UpsertDmsCalculationInfoForm(true)">저장</a>
+							<a class="btn btn-6 btn-outline-danger" 
+								onclick="UpsertDmsCalculationInfoForm(false)">삭제</a>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

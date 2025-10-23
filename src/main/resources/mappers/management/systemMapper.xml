@@ -1,0 +1,822 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dain23.management.mapper.SystemMapper">
+
+
+	<select id="selectMoveAndBackup">
+		SELECT 
+			scf.id,
+			scf.name,
+			scf.pc_id,
+			scf.source_name,
+			scf.source_path,
+			scf.target_name,
+			scf.target_path,
+			scf.last_dt,
+			scf.used,
+			scf.run,
+			scf.parsing_type_id,
+			dc.name AS pc_text,
+			ac.text AS parsing_text
+		FROM system_collect_file scf 
+		JOIN dain_computer dc  
+			ON dc.id = scf.pc_id 
+		JOIN admin_code ac 
+			ON ac.id = scf.parsing_type_id 
+		WHERE 
+			scf.used = true 
+		ORDER BY 
+			scf.id DESC
+	</select>
+	
+	
+	<select id="selectCodeSet">
+		SELECT 
+			id AS idx,
+			type,
+			value,
+			text,
+			info,
+			used 
+		FROM 
+			admin_code 
+		WHERE 
+			type = #{type} 
+		ORDER BY 
+			id
+	</select>
+    
+   
+	<insert id="upsertMoveAndBackup">
+		INSERT INTO 
+			system_collect_file (
+				id
+				,name
+				,pc_id
+				,source_name
+				,source_path
+				,target_name
+				,target_path
+				,run
+				,parsing_type_id
+			)
+		VALUES (
+			#{params.id}
+			,#{params.name}
+			,#{params.pc_id}
+			,#{params.source_name}
+			,#{params.source_path}
+			,#{params.target_name}
+			,#{params.target_path}
+			,#{params.run}
+			,#{params.parsing_type_id}
+		)
+		ON DUPLICATE KEY UPDATE
+			name = VALUES(name)
+			,pc_id = VALUES(pc_id)
+			,source_name = VALUES(source_name)
+			,source_path = VALUES(source_path)
+			,target_name = VALUES(target_name)
+			,target_path = VALUES(target_path)
+			,run = VALUES(run)
+			,parsing_type_id = VALUES(parsing_type_id)
+	</insert>
+	
+	
+	<update id="removeMoveAndBackup">
+		UPDATE 
+			system_collect_file 
+		SET 
+			used = false 
+		WHERE 
+			id = #{params.id}
+	</update>
+	
+	
+	<select id="selectPlaceCombo">
+		SELECT 
+			dp.id
+			,dp.company_id
+			,dp.code
+			,dp.short_name
+			,dp.full_name
+			,dp.manager
+			,dp.url
+			,dp.run
+			,dp.open
+			,IFNULL(au.user, '') AS user
+			,IFNULL(au.password, '') AS password
+			,IFNULL(au.id, '') AS user_id
+		FROM dain_place dp 
+		LEFT JOIN admin_user au 
+			ON au.place_id = dp.id
+		WHERE 
+			dp.used = true 
+			AND dp.old_version = false 
+		ORDER BY 
+			dp.short_name ASC
+	</select>
+	
+	
+	<select id="selectComputerCombo" resultType="Map">
+		SELECT 
+			id
+			,name
+			,ip
+			,description
+		FROM dain_computer 
+		WHERE 
+			used = true 
+		ORDER BY 
+			id ASC
+	</select>
+	
+	
+	<select id="selectCompanyCombo" resultType="Map">
+		SELECT 
+			id
+			,full_name
+			,short_name
+			,tel
+			,address
+		FROM dain_company 
+		WHERE 
+			used = true 
+		ORDER BY 
+			full_name ASC
+	</select>
+
+
+	<select id="selectLoggerCombo">
+		SELECT
+			id
+			,place_id
+			,code
+			,name
+			,location
+			,cdma_no
+			,computer_id
+			,install_dt
+			,file_path
+			,cycle_check
+			,run
+		FROM dain_logger 
+		WHERE 
+			place_id = #{placeId} 
+			AND used = true 
+		ORDER BY 
+			code ASC
+	</select>
+	
+	
+	<select id="selectSensorCombo">
+		SELECT 
+			id
+			,logger_id
+			,code
+			,name
+			,IFNULL(location, '') AS location
+			,sensor_type_id
+			,sensor_order
+			,install_dt 
+		FROM dain_sensor 
+		WHERE 
+			place_id = #{placeId}
+			AND used = true 
+		ORDER BY 
+			logger_id ASC, sensor_order ASC, code ASC
+	</select>
+	
+	
+	<select id="selectSensorLoggerCombo">
+		SELECT 
+			id
+			,code
+		FROM dain_logger 
+		WHERE 
+			place_id = #{placeId}
+			AND used = true
+	</select>
+	
+	
+	<insert id="upsertDmsPlace">
+		INSERT INTO 
+			dain_place (
+				id
+				,company_id
+				,code
+				,short_name
+				,full_name
+				,manager
+				,url
+				,run
+				,open
+			)
+		VALUES (
+			#{params.id}
+			,#{params.company_id}
+			,#{params.code}
+			,#{params.short_name}
+			,#{params.full_name}
+			,#{params.manager}
+			,#{params.url}
+			,#{params.run}
+			,#{params.open}
+		)
+		ON DUPLICATE KEY UPDATE
+			id = VALUES(id)
+			,company_id = VALUES(company_id)
+			,code = VALUES(code)
+			,short_name = VALUES(short_name)
+			,full_name = VALUES(full_name)
+			,manager = VALUES(manager)
+			,url = VALUES(url)
+			,run = VALUES(run)
+			,open = VALUES(open)
+	</insert>
+	
+	
+	<select id="selectPlaceId" resultType="Map">
+		SELECT 
+			id,
+			created
+		FROM dain_place 
+		WHERE 
+			code = #{code}
+	</select>
+	
+	
+	<select id="findPlace" resultType="int">
+		SELECT 
+			COUNT(*) 
+		FROM dain_place 
+		WHERE 
+			code = #{params.code}
+	</select>
+	
+	
+	<insert id="upsertDmsUser">
+		INSERT INTO 
+			admin_user (
+				id
+				,place_id
+				,user
+				,password
+			)
+		VALUES (
+			#{params.uid}
+			,#{placeId}
+			,#{params.user}
+			,#{params.password}
+		)
+		ON DUPLICATE KEY UPDATE
+			id = VALUES(id)
+			,place_id = VALUES(place_id)
+			,user = VALUES(user)
+			,password = VALUES(password)
+	</insert>
+	
+	
+	<update id="deleteDmsPlace">
+		UPDATE 
+			dain_place 
+		SET 
+			used = false 
+		WHERE 
+			id = #{params.id}
+	</update>
+	
+	
+	<update id="deleteDmsUser">
+		UPDATE 
+			admin_user 
+		SET 
+			used = false 
+		WHERE 
+			id = #{id}
+	</update>
+	
+	
+	<insert id="upsertDmsCompany">
+		INSERT INTO 
+			dain_company (
+				id
+				,full_name
+				,short_name
+				,tel
+				,address
+			)
+		VALUES (
+			#{params.id}
+			,#{params.full_name}
+			,#{params.short_name}
+			,#{params.tel}
+			,#{params.address}
+		)
+		ON DUPLICATE KEY UPDATE
+			id = VALUES(id)
+			,full_name = VALUES(full_name)
+			,short_name = VALUES(short_name)
+			,tel = VALUES(tel)
+			,address = VALUES(address)
+	</insert>
+	
+	
+	<update id="deleteDmsCompany">
+		UPDATE 
+			dain_company 
+		SET 
+			used = false 
+		WHERE 
+			id = #{params.id}
+	</update>
+	
+	
+	<select id="findCompany" resultType="int">
+		SELECT 
+			COUNT(*) 
+		FROM dain_company 
+		WHERE 
+			full_name = #{params.full_name}
+	</select>
+	
+	
+	<select id="findComputer" resultType="int">
+		SELECT 
+			COUNT(*) 
+		FROM dain_computer 
+		WHERE 
+			name = #{params.name}
+	</select>
+	
+	
+	<insert id="upsertDmsComputer">
+		INSERT INTO 
+			dain_computer (
+				id
+				,name
+				,ip
+				,description
+			)
+		VALUES (
+			#{params.id}
+			,#{params.name}
+			,#{params.ip}
+			,#{params.description}
+		)
+		ON DUPLICATE KEY UPDATE
+			id = VALUES(id)
+			,name = VALUES(name)
+			,ip = VALUES(ip)
+			,description = VALUES(description)
+	</insert>
+	
+	
+	<update id="deleteDmsComputer">
+		UPDATE 
+			dain_computer 
+		SET 
+			used = false 
+		WHERE 
+			id = #{params.id}
+	</update>
+	
+	
+	<insert id="upsertDmsLogger">
+		INSERT INTO 
+			dain_logger (
+				id
+				,place_id
+				,code
+				,name
+				,location
+				,cdma_no
+				,computer_id
+				,install_dt
+				,file_path
+				,cycle_check
+				,run
+			)
+		VALUES (
+			#{params.id}
+			,#{params.place_id}
+			,#{params.code}
+			,#{params.name}
+			,#{params.location}
+			,#{params.cdma_no}
+			,#{params.computer_id}
+			,#{params.install_dt}
+			,#{params.file_path}
+			,#{params.cycle_check}
+			,#{params.run}
+		)
+		ON DUPLICATE KEY UPDATE
+			id = VALUES(id)
+			,place_id = VALUES(place_id)
+			,code = VALUES(code)
+			,name = VALUES(name)
+			,location = VALUES(location)
+			,cdma_no = VALUES(cdma_no)
+			,computer_id = VALUES(computer_id)
+			,install_dt = VALUES(install_dt)
+			,file_path = VALUES(file_path)
+			,cycle_check = VALUES(cycle_check)
+			,run = VALUES(run)
+	</insert>
+	
+	
+	<update id="deleteDmsLogger">
+		UPDATE 
+			dain_logger 
+		SET 
+			used = false 
+		WHERE 
+			id = #{params.id}
+	</update>
+	
+	
+	<insert id="upsertDmsSensor">
+		INSERT INTO 
+			dain_sensor (
+				id
+				,place_id
+				,logger_id
+				,code
+				,name
+				,location
+				,sensor_type_id
+				,sensor_order
+				,install_dt
+			)
+		VALUES (
+			#{params.id}
+			,#{params.place_id}
+			,#{params.logger_id}
+			,#{params.code}
+			,#{params.name}
+			,#{params.location}
+			,#{params.sensor_type_id}
+			,#{params.sensor_order}
+			,#{params.install_dt}
+		)
+		ON DUPLICATE KEY UPDATE
+			id = VALUES(id)
+			,place_id = VALUES(place_id)
+			,logger_id = VALUES(logger_id)
+			,code = VALUES(code)
+			,name = VALUES(name)
+			,location = VALUES(location)
+			,sensor_type_id = VALUES(sensor_type_id)
+			,sensor_order = VALUES(sensor_order)
+			,install_dt = VALUES(install_dt)
+	</insert>
+	
+	
+	<update id="deleteDmsSensor">
+		UPDATE 
+			dain_sensor 
+		SET 
+			used = false 
+		WHERE 
+			id = #{params.id}
+	</update>
+	
+	
+	<select id="selectSensorTypeCombo" resultType="Map">
+		SELECT 
+			id
+			,code
+			,name
+		FROM dain_sensor_type 
+		WHERE 
+			used = true 
+		ORDER BY 
+			code ASC
+	</select>
+	
+	<insert id="upsertDmsSensorType">
+		INSERT INTO 
+			dain_sensor_type (
+				id
+				,code
+				,name
+			)
+		VALUES (
+			#{params.id}
+			,#{params.code}
+			,#{params.name}
+		)
+		ON DUPLICATE KEY UPDATE
+			id = VALUES(id)
+			,code = VALUES(code)
+			,name = VALUES(name)
+	</insert>
+	
+	
+	<update id="deleteDmsSensorType">
+		UPDATE 
+			dain_sensor_type 
+		SET 
+			used = false 
+		WHERE 
+			id = #{params.id}
+	</update>
+	
+	
+	<select id="selectSensorTypeSettingCombo" resultType="Map">
+		SELECT 
+			dsts.id
+			,dst.code
+			,dst.name
+			,dsts.group_order
+			,dsts.min_gauge
+			,dsts.max_gauge
+			,IFNULL(criteria_val1, '') AS criteria_val1
+			,IFNULL(criteria_val2, '') AS criteria_val2
+			,IFNULL(criteria_val3, '') AS criteria_val3
+			,dsts.interval
+			,dsts.hidden
+		FROM dain_sensor_type dst 
+		JOIN dain_sensor_type_setting dsts 
+			ON dsts.sensor_type_id = dst.id 
+			AND dsts.place_id = #{placeId}
+	</select>
+	
+	
+	<insert id="upsertDmsSensorTypeSetting">
+		UPDATE 
+			dain_sensor_type_setting 
+		SET 
+			group_order = #{params.group_order}
+			,min_gauge = #{params.min_gauge}
+			,max_gauge = #{params.max_gauge}
+			,criteria_val1 = #{params.criteria_val1}
+			,criteria_val2 = #{params.criteria_val2}
+			,criteria_val3 = #{params.criteria_val3}
+			,`interval` = #{params.interval}
+			,hidden = #{params.hidden}
+		WHERE 
+			id = #{params.id}
+	</insert>
+	
+	
+	<select id="selectCalculationCombo" resultType="Map">
+		SELECT 
+			id
+			,name
+			,target_column
+			,formula
+			,IFNULL(description, '') AS description 
+		FROM dain_calculation_item 
+		WHERE 
+			used = true 
+		ORDER BY 
+			name ASC
+	</select>
+	
+	
+	<select id="findCalculation" resultType="int">
+		SELECT 
+			COUNT(*) 
+		FROM dain_calculation_item 
+		WHERE 
+			name = #{params.name}
+	</select>
+	
+	
+	<insert id="upsertDmsCalculation">
+		INSERT INTO 
+			dain_calculation_item (
+				id
+				,name
+				,target_column
+				,formula
+				,description
+			)
+		VALUES (
+			#{params.id}
+			,#{params.name}
+			,#{params.target_column}
+			,#{params.formula}
+			,#{params.description}
+		)
+		ON DUPLICATE KEY UPDATE
+			id = VALUES(id)
+			,name = VALUES(name)
+			,target_column = VALUES(target_column)
+			,formula = VALUES(formula)
+			,description = VALUES(description)
+	</insert>
+	
+	
+	<update id="deleteDmsCalculation">
+		UPDATE 
+			dain_calculation_item 
+		SET 
+			used = false 
+		WHERE 
+			id = #{params.id}
+	</update>
+	
+	
+	<select id="selectApplyCalculation" resultType="Map">
+		SELECT 
+			dsac.id
+			,dci.target_column
+			,dci.formula
+			,TRIM(TRAILING '.' FROM TRIM(TRAILING '0' FROM MAX(CASE WHEN dcp.param_key = 'A' THEN dcp.param_value ELSE 0 END))) AS A
+			,TRIM(TRAILING '.' FROM TRIM(TRAILING '0' FROM MAX(CASE WHEN dcp.param_key = 'B' THEN dcp.param_value ELSE 0 END))) AS B
+			,TRIM(TRAILING '.' FROM TRIM(TRAILING '0' FROM MAX(CASE WHEN dcp.param_key = 'C' THEN dcp.param_value ELSE 0 END))) AS C
+			,TRIM(TRAILING '.' FROM TRIM(TRAILING '0' FROM MAX(CASE WHEN dcp.param_key = 'D' THEN dcp.param_value ELSE 0 END))) AS D
+			,TRIM(TRAILING '.' FROM TRIM(TRAILING '0' FROM MAX(CASE WHEN dcp.param_key = 'E' THEN dcp.param_value ELSE 0 END))) AS E
+			,DATE_FORMAT(dsac.from_dt, '%Y-%m-%d %H:%i:%s') AS from_dt
+		    ,IFNULL(DATE_FORMAT(dsac.to_dt, '%Y-%m-%d %H:%i:%s'), '무기한') AS to_dt
+		FROM dain_sensor_apply_calculation dsac 
+		JOIN dain_calculation_item dci 
+			ON dci.id = dsac.calculation_item_id 
+		LEFT JOIN dain_calculation_param dcp
+		    ON dcp.apply_calculation_id = dsac.id 
+		WHERE 
+			dsac.sensor_id = #{sensorId}
+			AND dsac.used = true 
+		GROUP BY 
+		    dci.target_column,
+		    dci.formula,
+		    dsac.id,
+		    dsac.from_dt
+		ORDER BY 
+			dci.target_column, 
+			dsac.from_dt DESC, 
+			dsac.id DESC
+	</select>
+	
+	
+	<select id="selectSensorInitial" resultType="Map">
+		SELECT
+			ROUND(raw_val, 3) AS raw_val
+			,ROUND(displace_val, 3) AS displace_val
+			,DATE_FORMAT(from_dt, '%Y-%m-%d %H:%i:%s') AS from_dt
+		    ,IFNULL(DATE_FORMAT(to_dt, '%Y-%m-%d %H:%i:%s'), '무기한') AS to_dt
+		FROM
+			dain_sensor_initial
+		WHERE
+			sensor_id = #{sensorId}
+		ORDER BY
+			from_dt DESC,
+			id DESC
+	</select>
+	
+	
+	<insert id="insertDmsApplyCalculation" useGeneratedKeys="true" keyProperty="id">
+		INSERT INTO 
+			dain_sensor_apply_calculation (
+				sensor_id
+				,calculation_item_id
+				,from_dt
+				,to_dt
+			)
+		VALUES (
+			#{params.sensor_id}
+			,#{params.calculation_item_id}
+			,#{params.from_dt}
+			,#{params.to_dt}
+		)
+	</insert>
+	
+	
+	<insert id="insertDmsCalculationParam">
+		INSERT INTO 
+			dain_calculation_param (
+				sensor_id
+				,apply_calculation_id
+				,param_key
+				,param_value
+			)
+		VALUES 
+		<foreach collection="params.param" item="p" separator=",">
+	        (
+	            #{params.sensor_id},
+	            #{params.id},
+	            #{p.param_key},
+	            #{p.param_value}
+	        )
+    	</foreach>
+	</insert>
+	
+	
+	<insert id="insertDmsSensorInitial">
+		INSERT INTO 
+			dain_sensor_initial (
+				sensor_id
+				,raw_val
+				,displace_val
+				,from_dt
+				,to_dt
+			)
+		VALUES (
+			#{params.sensor_id}
+			,#{params.raw_val}
+			,#{params.displace_val}
+			,#{params.from_dt}
+			,#{params.to_dt}
+		)
+	</insert>
+	
+	
+	<update id="createDataTable">
+	    CREATE TABLE IF NOT EXISTS data_${code} (
+	        id BIGINT PRIMARY KEY AUTO_INCREMENT,
+	        logger_id INT NOT NULL COMMENT '로거ID',
+	        sensor_id INT NOT NULL COMMENT '센서ID',
+	        measured_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP COMMENT '측정일시',
+	        raw_val DECIMAL(10,5) NOT NULL DEFAULT 0 COMMENT '원시값',
+	        correction_val DECIMAL(10,5) NOT NULL DEFAULT 0 COMMENT '보정값',
+	        angle_val DECIMAL(10,5) NOT NULL DEFAULT 0 COMMENT '각도값',
+	        displace_val DECIMAL(10,5) NOT NULL DEFAULT 0 COMMENT '변위값',
+	        initial_val DECIMAL(10,5) NOT NULL DEFAULT 0 COMMENT '초기치',
+	        changed_val DECIMAL(10,5) NOT NULL DEFAULT 0 COMMENT '변화량',
+	        is_hourly TINYINT(1) NOT NULL DEFAULT 0 COMMENT '정각여부',
+	        added TINYINT(1) NOT NULL DEFAULT 0 COMMENT '추가여부',
+	        used TINYINT(1) NOT NULL DEFAULT 1 COMMENT '사용여부',
+	        FOREIGN KEY (logger_id) REFERENCES dain_logger(id),
+	        FOREIGN KEY (sensor_id) REFERENCES dain_sensor(id),
+	        UNIQUE (sensor_id, measured_at),
+	        INDEX idx_measured_at (measured_at),
+	        INDEX idx_logger_time (logger_id, measured_at),
+	        INDEX idx_is_hourly_measured_at (is_hourly, measured_at)
+	    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+	</update>
+	
+	
+	<update id="updatePlaceCreated">
+	    UPDATE 
+	    	dain_place
+	    SET 
+	    	created = true
+	    WHERE 
+	    	code = #{code}
+	  </update>
+	
+
+	<select id="selectSensorTypeSetting" resultType="Map">
+		SELECT 
+		    IFNULL(MAX(group_order) + 1, 0) AS next_group_order,
+		    (
+		    	SELECT 
+		    		COUNT(*)
+		    	FROM 
+		    		dain_sensor_type_setting
+		    	WHERE
+		    		place_id = #{params.place_id}
+		    		AND sensor_type_id = #{params.sensor_type_id}
+		    ) AS find_setting
+		FROM 
+		    dain_sensor_type_setting
+		WHERE 
+		    place_id = #{params.place_id};
+	</select>
+	
+	
+	<insert id="insertSensorTypeSetting">
+		INSERT INTO 
+			dain_sensor_type_setting (
+				place_id
+				,sensor_type_id
+				,group_order
+			)
+		VALUES (
+			#{params.place_id}
+			,#{params.sensor_type_id}
+			,#{nextOrder}
+		)
+	</insert>
+	
+	
+	<select id="findLogger" resultType="int">
+		SELECT 
+			COUNT(*) 
+		FROM dain_logger 
+		WHERE 
+			code = #{params.code}
+	</select>
+	
+	
+	<select id="findSensor" resultType="int">
+		SELECT 
+			COUNT(*) 
+		FROM dain_sensor 
+		WHERE
+			place_id = #{params.place_id}
+			AND code = #{params.code}
+	</select>
+	
+	
+	<select id="findSensorType" resultType="int">
+		SELECT 
+			COUNT(*) 
+		FROM dain_sensor_type 
+		WHERE
+			code = #{params.code}
+	</select>
+	
+</mapper>

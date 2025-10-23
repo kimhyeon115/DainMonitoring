@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dain23.common.mapper.SessionMapper">
+
+	<!-- 현장 오픈 여부 조회 -->
+	<select id="checkPageOpen" resultType="boolean">
+		SELECT open FROM dain_place WHERE code = #{placeCode};
+	</select>
+
+
+	<!-- 세션 조회 -->
+	<select id="findSession" resultType="Session">
+	    SELECT 
+	        ds.token,
+	        dp.code AS place_code,
+	        ds.expiry_at,
+	        du.level
+	    FROM admin_session ds 
+	    JOIN dain_place dp 
+	    	ON ds.place_id = dp.id 
+	    JOIN admin_user du 
+	    	ON du.id = ds.user_id 
+	    WHERE 
+	        token = #{clientToken}
+    </select>
+    
+    
+    <!-- 사용자 정보 조회 -->
+	<select id="findUser" resultType="User">
+	    SELECT 
+	        au.id AS user_id,
+	        au.place_id,
+			dp.code AS place_code,
+			au.user,
+			au.level
+	    FROM 
+	        admin_user au 
+	    JOIN 
+	    	dain_place dp 
+	   	ON 
+	   		au.place_id = dp.id 
+	    WHERE 
+	        dp.code = #{placeCode} 
+	        AND au.user = #{user} 
+	        AND au.password = #{password} 
+	        AND au.used = true;
+    </select>
+    
+    
+    <!-- 세션 등록 -->
+    <insert id="insertSession">
+	    INSERT INTO  
+	        admin_session ( 
+	    		token
+	    		,place_id
+	    		,user_id
+	    		,created_at
+	    		,expiry_at
+	        )
+	    VALUES (
+			#{token}
+			,#{placeId}
+			,#{userId}
+			,#{createdAt}
+			,#{expiryAt}
+		)
+    </insert>
+    
+    <update id="updateSession">
+    	UPDATE 
+    		admin_session 
+    	SET 
+    		expiry_at = #{expiryAt} 
+    	WHERE 
+    		token = #{token}
+    </update>
+    
+    
+    <delete id="deleteSession">
+    	DELETE FROM admin_session WHERE token = #{clientToken}
+    </delete>
+    
+    
+    <delete id="deleteExpiredSession">
+    	DELETE FROM admin_session WHERE expiry_at <![CDATA[ < ]]> NOW() - INTERVAL #{minutes} MINUTE
+    </delete>
+
+</mapper>
