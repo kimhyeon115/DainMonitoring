@@ -54,7 +54,8 @@ public class SystemController {
 		/* 카테고리 기준 실행 서비스 정의 */
 		Map<String, Runnable> attrMap = Map.of(
 			"dmsSetting", () -> model.addAllAttributes(systemService.getDmsSettingFrame()),
-	        "moveAndBackup", () -> model.addAllAttributes(systemService.getMoveAndBackupFrame())
+	        "moveAndBackup", () -> model.addAllAttributes(systemService.getMoveAndBackupFrame()),
+	        "dataDelete", () -> model.addAllAttributes(systemService.getDataDeleteFrame())
 	    );
 
 		/* 카테고리 기준 서비스 실행 */

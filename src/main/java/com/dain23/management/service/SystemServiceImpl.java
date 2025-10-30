@@ -50,5 +50,18 @@ public class SystemServiceImpl implements SystemService {
 	    suppliers.forEach((key, supplier) -> result.put(key, supplier.get()));
 	    return result;
 	}
-
+	
+	
+	
+	/* 데이터 삭제 컨텐츠 데이터 반환 */
+	public Map<String, Object> getDataDeleteFrame() {
+		Map<String, Supplier<List<Map<String, Object>>>> suppliers = Map.of(
+	        "selectPlaceCombo", systemMapper::selectEventPlaceCombo,
+	        "selectDataDelete", systemMapper::selectDataDelete
+	    );
+	
+		Map<String, Object> result = new LinkedHashMap<>();
+		suppliers.forEach((key, supplier) -> result.put(key, supplier.get()));
+		return result;
+	}
 }

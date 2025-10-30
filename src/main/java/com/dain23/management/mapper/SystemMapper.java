@@ -103,4 +103,30 @@ public interface SystemMapper {
 	
 	int findSensorType(@Param("params") Map<String, Object> params);
 	
+	List<Map<String, Object>> selectEventPlaceCombo();
+	
+	List<Map<String, Object>> selectEventLoggerCombo(@Param("placeId") String placeId);
+	
+	List<Map<String, Object>> selectEventSensorCombo(@Param("placeId") String placeId);
+	
+	int upsertDataDelete(@Param("params") Map<String, Object> params);
+	
+	int removeDataDelete(@Param("params") Map<String, Object> params);
+	
+	List<Map<String, Object>> selectDataDelete();
+	
+	Map<String, Object> selectSingleLogger(@Param("params") Map<String, Object> params);
+	
+	Map<String, Object> selectSingleSensor(@Param("params") Map<String, Object> params);
+	
+	Map<String, Object> selectSingleSensorTypeSetting(@Param("params") Map<String, Object> params);
+	
+	Map<String, Object> selectSingleMoveAndBackup(@Param("params") Map<String, Object> params);
+	
+	Map<String, Object> selectSingleDataDelete(@Param("params") Map<String, Object> params);
+	
+	int selectInitialCalculationCount(@Param("params") Map<String, Object> params);
+	
+	int updateSensorInitialCalculation(@Param("params") Map<String, Object> params);
+	
 }

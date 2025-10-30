@@ -114,8 +114,8 @@
 			dst.name AS sensorTypeName,
 			ds.location,
 		    d.measured_at AS last_measured_at,
-		    ROUND(d.displace_val, 3) AS displace_val,
-		    IFNULL(td.today_max_displace_val, 0) AS max_displace_val,
+		    ROUND(d.changed_val, 3) AS changed_val,
+		    IFNULL(td.today_max_changed_val, 0) AS max_changed_val,
 		    IFNULL(td.today_data_count, 0) AS today_data_count,
 		    dsts.group_order
 		FROM dain_logger dl
@@ -134,7 +134,7 @@
 		LEFT JOIN (
 		    SELECT
 				sensor_id,
-			    ROUND(MAX(displace_val), 3) AS today_max_displace_val,
+			    ROUND(MAX(changed_val), 3) AS today_max_changed_val,
 			    COUNT(*) AS today_data_count
 			FROM data_${placeCode}
 			WHERE
@@ -187,7 +187,7 @@
 			ds.sensor_type_id,
 		    ds.code AS sensor_code,
 		    d.measured_at,
-		    d.displace_val
+		    d.changed_val
 		FROM dain_logger dl
 		JOIN dain_sensor ds ON ds.logger_id = dl.id
 		JOIN dain_sensor_type_setting dsts ON dsts.sensor_type_id = ds.sensor_type_id
@@ -295,13 +295,13 @@
 	            <if test="average">
 	                ROUND(AVG(CASE WHEN sensor_id = #{sensor.sensorId} THEN ${column} END), 3) AS `${sensor.sensorCode}`
 	                <if test="sensor.cycleCheck == false">
-	                    , ROUND(AVG(CASE WHEN sensor_id = #{sensor.sensorId} THEN displace_val END), 3) AS kine
+	                    , ROUND(AVG(CASE WHEN sensor_id = #{sensor.sensorId} THEN changed_val END), 3) AS kine
 	                </if>
 	            </if>
 	            <if test="!average">
 	                MAX(ROUND(CASE WHEN sensor_id = #{sensor.sensorId} THEN ${column} END, 3)) AS `${sensor.sensorCode}`
 	                <if test="sensor.cycleCheck == false">
-	                    , MAX(ROUND(CASE WHEN sensor_id = #{sensor.sensorId} THEN displace_val END, 3)) AS kine
+	                    , MAX(ROUND(CASE WHEN sensor_id = #{sensor.sensorId} THEN changed_val END, 3)) AS kine
 	                </if>
 	            </if>
 	        </foreach>
@@ -441,8 +441,8 @@
     <select id="findSensorEventMaxAvgData" resultType="Map">
 		SELECT
 			DATE(d.measured_at) AS measurement_date,
-			ROUND(AVG(d.displace_val), 3) AS avg_displace_val,
-			ROUND(MAX(d.displace_val), 3) AS max_displace_val,
+			ROUND(AVG(d.changed_val), 3) AS avg_changed_val,
+			ROUND(MAX(d.changed_val), 3) AS max_changed_val,
 			COUNT(*) AS record_count
 		FROM dain_sensor ds
 		JOIN dain_sensor_type_setting dsts ON dsts.place_id = ds.place_id

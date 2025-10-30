@@ -8,8 +8,6 @@ public interface SystemAPIService {
 
 	Map<String, Object> selectComboOfDmsSetting(Map<String, Object> params);
 	
-	ResponseData upsertMoveAndBackup(Map<String, Object> params);
-	
 	ResponseData checkDuplicate(Map<String, Object> params);
 	
 	ResponseData upsertDmsComputer(Map<String, Object> params);
@@ -31,5 +29,13 @@ public interface SystemAPIService {
 	ResponseData upsertDmsSensorTypeSetting(Map<String, Object> params);
 	
 	ResponseData upsertDmsCalculation(Map<String, Object> params);
+	
+	ResponseData upsertMoveAndBackup(Map<String, Object> params);
+	
+	Map<String, Object> selectComboOfDataDel(Map<String, Object> params);
+	
+	ResponseData upsertDataDelete(Map<String, Object> params);
+	
+	ResponseData selectTargetDetail(Map<String, Object> params);
 	
 }

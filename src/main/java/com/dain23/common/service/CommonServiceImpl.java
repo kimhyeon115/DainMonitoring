@@ -103,8 +103,8 @@ public class CommonServiceImpl implements CommonService {
 	public boolean isValidSession(HttpServletRequest request, String placeCode) {
 		
 		Cookie[] cookies = request.getCookies();
-		if (cookies == null) return false;
 
+		if (cookies == null) return false;
 		for (Cookie cookie : cookies) {
 	        if ("DAIN_SESSION_TOKEN".equals(cookie.getName())) {
 	            String clientToken = cookie.getValue();
@@ -125,8 +125,6 @@ public class CommonServiceImpl implements CommonService {
 	                    	LocalDateTime expiryAt = now.plusHours(1);
 	                    	sessionMapper.updateSession(expiryAt, token);
 	                        return true;
-	                    } else {
-	                    	sessionMapper.deleteSession(token);
 	                    }
 	                }
 	            }
@@ -162,6 +160,7 @@ public class CommonServiceImpl implements CommonService {
 			
 			Cookie cookie = new Cookie("DAIN_SESSION_TOKEN", token);
 			cookie.setHttpOnly(true);
+			cookie.setPath("/");
 			response.addCookie(cookie);
 
 			if (!isValidSession(request, placeCode)) return "redirect:patch";

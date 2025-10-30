@@ -40,8 +40,8 @@
 					</div>
 					<div>
 						<div class="form-label">수집 PC</div>
-						<select class="form-select" id="pc_id">
-							<option value="" disabled selected>선택해주세요</option>
+						<select class="form-select" id="pc-id">
+							<option value="0" disabled selected>선택해주세요</option>
 							<th:block th:each="pc : ${selectComputer}">
 								<option th:value="${pc.id}" th:text="${pc.name}"></option>
 							</th:block>
@@ -52,42 +52,42 @@
 				<div class="append-input mb-3">
 					<div class="append-input-inner">
 						<div class="form-label">수집 파일명</div>
-						<input id="source_name" type="text" class="form-control" disabled>
+						<input id="source-name" type="text" class="form-control" disabled>
 					</div>
 					<div>
 						<div class="form-label">&nbsp;</div>
-						<input id="source_file" type="file" class="form-control" accept=".txt">
+						<input id="source-file" type="file" class="form-control" accept=".txt">
 					</div>
 				</div>
 				<div class="append-input mb-3">
 					<div class="append-input-inner">
 						<div class="form-label">수집 경로</div>
-						<input id="source_path" type="text" class="form-control" placeholder="예) C:\source">
+						<input id="source-path" type="text" class="form-control" placeholder="예) C:\source">
 					</div>
 				</div>
 				<div class="path-section-bar"></div>
 				<div class="append-input mb-3">
 					<div class="append-input-inner">
 						<div class="form-label">이동 파일명</div>
-						<input id="target_name" type="text" class="form-control" disabled>
+						<input id="target-name" type="text" class="form-control" disabled>
 					</div>
 					<div>
 						<div class="form-label">&nbsp;</div>
-						<input id="target_file" type="file" class="form-control" accept=".txt">
+						<input id="target-file" type="file" class="form-control" accept=".txt">
 					</div>
 				</div>
 				<div class="append-input mb-3">
 					<div class="append-input-inner">
 						<div class="form-label">이동 경로</div>
-						<input id="target_path" type="text" class="form-control" placeholder="예) D:\target">
+						<input id="target-path" type="text" class="form-control" placeholder="예) D:\target">
 					</div>
 				</div>
 				<div class="path-section-bar"></div>
 				<div class="append-input mb-3">
 					<div class="append-input-inner">
 						<div class="form-label">파싱 타입</div>
-						<select class="form-select" id="parsing_type_id">
-							<option value="" disabled selected>선택해주세요</option>
+						<select class="form-select" id="parsing-type-id">
+							<option value="0" disabled selected>선택해주세요</option>
 							<option th:each="code : ${selectParsingCode}" th:value="${code.idx}" th:text="${code.text}"></option>
 						</select>
 					</div>
@@ -107,14 +107,13 @@
 				
 				<div class="append-button">
 					<div>
-						<a class="btn btn-6 btn-outline-primary" onclick="ResetFileManageForm('moveAndBack')">초기화</a>
+						<a class="btn btn-6 btn-outline-primary" onclick="ResetFileManageForm('moveAndBackup')">초기화</a>
 					</div>
 					<div>
-						<a class="btn btn-6 btn-outline-success mx-1" onclick="UpsertMoveAndBackInfo(true)">저장</a>
-						<a class="btn btn-6 btn-outline-danger" onclick="UpsertMoveAndBackInfo(false)">삭제</a>
+						<a class="btn btn-6 btn-outline-success mx-1" onclick="UpsertMoveAndBackupInfo(true)">저장</a>
+						<a class="btn btn-6 btn-outline-danger" onclick="UpsertMoveAndBackupInfo(false)">삭제</a>
 					</div>
-					<input type="hidden" id="appendId" value="0">
-					<input type="hidden" id="appendCd">
+					<input type="hidden" id="append-id" value="0">
 				</div>
 			</div>
 		</div>
@@ -129,20 +128,20 @@
 			</div>
 			<div class="d-flex gap-3 align-items-center">
 				<div><strong>검색 조건</strong></div>
-				<select class="form-select select-filter" id="select_pc" onchange="onSelectFilterChange()">
+				<select class="form-select select-filter" id="select-pc" onchange="SelectedChangeFilterMoveAndBackTr()">
 					<option value="">전체</option>
 					<th:block th:each="pc : ${selectComputer}">
 						<option th:value="${pc.id}" th:text="${pc.name}"></option>
 					</th:block>
                 </select>
-				<select class="form-select select-filter" id="select_parsing" onchange="onSelectFilterChange()">
+				<select class="form-select select-filter" id="select-parsing" onchange="SelectedChangeFilterMoveAndBackTr()">
 					<option value="">전체</option>
 					<option th:each="code : ${selectParsingCode}" th:value="${code.idx}" th:text="${code.text}"></option>
 				</select>
 			</div>
 		</div>
 		<div class="table-responsive">
-			<table class="table card-table table-vcenter text-nowrap datatable" id="collect_table">
+			<table class="table card-table table-vcenter text-nowrap datatable" id="collect-table">
 				<thead>
 					<tr>
 						<th style="width: 13%">구분 명칭</th>
@@ -157,22 +156,16 @@
 				<tbody id="collect-body">
 					<tr th:each="object : ${selectMoveAndBackup}"
 						th:data-id="${object.id}"
-						th:data-name="${object.name}"
-						th:data-pc_id="${object.pc_id}"
-						th:data-source_name="${object.source_name}"
-						th:data-source_path="${object.source_path}"
-						th:data-target_name="${object.target_name}"
-						th:data-target_path="${object.target_path}"
-						th:data-run="${object.run}"
-						th:data-parsing_type_id="${object.parsing_type_id}"
+						th:data-pc-id="${object.pc_id}"
+						th:data-parsing-type-id="${object.parsing_type_id}"
 						class="row-list-tr" ondblclick="SelectedMoveAndBackRow(this)">
 						<td class="ellipsis-cell" th:text="${object.name}"></td>
 						<td class="ellipsis-cell" th:text="${object.pc_text}"></td>
 						<td class="ellipsis-cell" th:text="${object.parsing_text}"></td>
-						<td class="ellipsis-cell" th:text="${#dates.format(object.last_dt, 'yyyy-MM-dd HH:mm:ss')}"></td>
+						<td class="ellipsis-cell" th:text="${object.last_dt}"></td>
 						<td class="ellipsis-cell" th:text="${object.source_path}"></td>
 						<td class="ellipsis-cell" th:text="${object.target_path + '\' + object.target_name}"></td>
-						<td><span class="badge" th:classappend="${object.run == true} ? 'bg-info' : 'bg-warning'" th:text="${object.run == true ? '실행' : '정지'}"></span></td>
+						<td><span class="badge" th:classappend="${object.run ? 'bg-info' : 'bg-warning'}" th:text="${object.run ? '실행' : '정지'}"></span></td>
 					</tr>
 				</tbody>
 			</table>
@@ -180,7 +173,7 @@
 		<div class="card-footer">
 			<div class="row g-2 justify-content-center justify-content-sm-between">
 				<div class="col-auto d-flex align-items-center">
-					<p class="m-0 text-secondary"><strong id="total_count_row" th:text="${'Total ' + selectMoveAndBackup.size()}"></strong></p>
+					<p class="m-0 text-secondary"><strong id="total-count-row" th:text="${'Total ' + selectMoveAndBackup.size()}"></strong></p>
 				</div>
             </div>
 		</div>

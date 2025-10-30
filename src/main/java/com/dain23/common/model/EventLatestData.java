@@ -15,8 +15,7 @@ public class EventLatestData implements LatestData {
 	private int sensorTypeId;
 	private String sensorTypeName;
 	private String lastMeasuredAt;
-	private String displaceVal;
-	private String maxDisplaceVal;
+	private String maxChangedVal;
 	private String todayDataCount;
 	private int groupOrder;
 	

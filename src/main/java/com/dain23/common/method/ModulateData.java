@@ -43,10 +43,10 @@ public class ModulateData {
 		String dateKey = average ? "measured_date" : "measured_at";
 		String valueKey;
 		if (average) {
-		    valueKey = cycleCheck ? "avg_changed_val" : "avg_displace_val";
+		    valueKey = "avg_changed_val";
 		    if (dataList.get(0).get("sensor_type_id").toString().equals("15")) valueKey = "avg_displace_val";
 		} else {
-		    valueKey = cycleCheck ? "changed_val" : "displace_val";
+		    valueKey = "changed_val";
 		    if (dataList.get(0).get("sensor_type_id").toString().equals("15")) valueKey = "displace_val";
 		}
 

@@ -8,4 +8,6 @@ public interface SystemService {
 	
 	Map<String, Object> getMoveAndBackupFrame();
 	
+	Map<String, Object> getDataDeleteFrame();
+	
 }

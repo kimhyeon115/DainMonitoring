@@ -62,16 +62,6 @@
 	<th:block th:each="logger : ${loggerCombo}">
 		<li th:text="${logger.code}" 
 			th:data-id="${logger.id}" 
-			th:data-place_id="${logger.place_id}" 
-			th:data-code="${logger.code}" 
-			th:data-name="${logger.name}" 
-			th:data-location="${logger.location}" 
-			th:data-cdma_no="${logger.cdma_no}" 
-			th:data-computer_id="${logger.computer_id}" 
-			th:data-install_dt="${logger.install_dt}" 
-			th:data-file_path="${logger.file_path}" 
-			th:data-cycle_check="${logger.cycle_check}" 
-			th:data-run="${logger.run}" 
 			ondblclick="SelectedLoggerLi(this)">
 		</li>
 	</th:block>
@@ -90,6 +80,10 @@
 			ondblclick="SelectedSensorPlaceLi(this)">
 		</li>
 	</th:block>
+	
+	<th:block th:if="${#lists.isEmpty(placeCombo)}">
+		<option value="0" selected disabled>현장을 추가하세요</option>
+	</th:block>
 </ul>
 
 
@@ -97,13 +91,7 @@
 	<th:block th:each="sensor : ${sensorCombo}">
 		<li th:text="${sensor.code}" 
 			th:data-id="${sensor.id}" 
-			th:data-logger_id="${sensor.logger_id}"
-			th:data-code="${sensor.code}"
-			th:data-name="${sensor.name}" 
-			th:data-location="${sensor.location}" 
-			th:data-sensor_type_id="${sensor.sensor_type_id}" 
-			th:data-sensor_order="${sensor.sensor_order}" 
-			th:data-install_dt="${sensor.install_dt}" 
+			th:data-logger_id="${sensor.logger_id}" 
 			ondblclick="SelectedSensorLi(this)"
 			class="sensor-item">
 		</li>
@@ -131,6 +119,10 @@
 			ondblclick="SelectedSensorTypePlaceLi(this)">
 		</li>
 	</th:block>
+	
+	<th:block th:if="${#lists.isEmpty(placeCombo)}">
+		<option value="0" selected disabled>현장을 추가하세요</option>
+	</th:block>
 </ul>
 
 
@@ -139,17 +131,12 @@
         <li th:text="${type.code}" 
 			th:data-id="${type.id}"
 			th:data-code="${type.code}" 
-			th:data-name="${type.name}" 
-			th:data-group_order="${type.group_order}" 
-			th:data-min_gauge="${type.min_gauge}" 
-			th:data-max_gauge="${type.max_gauge}" 
-			th:data-criteria_val1="${type.criteria_val1}"
-			th:data-criteria_val2="${type.criteria_val2}" 
-			th:data-criteria_val3="${type.criteria_val3}" 
-			th:data-interval="${type.interval}" 
-			th:data-hidden="${type.hidden}" 
 			ondblclick="SelectedSensorTypePlaceSensorTypeLi(this)">
 		</li>
+	</th:block>
+	
+	<th:block th:if="${#lists.isEmpty(sensorTypeSettingCombo)}">
+		<option value="0" selected disabled>센서를 추가하세요</option>
 	</th:block>
 </ul>
 
@@ -185,11 +172,15 @@
 
 
 <select id="sensor-logger-combo" class="form-select">
-	<option value="0" selected disabled>= 로거 선택 =</option>
-	<option th:each="logger : ${sensorLoggerCombo}" 
-	  	th:text="${logger.code}" th:value="${logger.id}"
-		th:data-id="${logger.id}" th:data-code="${logger.code}">
-	</option>
+	<th:block th:each="logger : ${sensorLoggerCombo}">
+		<option th:text="${logger.code}" th:value="${logger.id}"
+			th:data-id="${logger.id}" th:data-code="${logger.code}">
+		</option>
+	</th:block>
+	
+	<th:block th:if="${#lists.isEmpty(sensorLoggerCombo)}">
+		<option value="0" selected disabled>로거를 추가하세요</option>
+	</th:block>
 </select>
 
 
@@ -215,12 +206,30 @@
 <tbody id="sensor-initial-body">
 	<tr th:each="row : ${sensorInitial}">
 		<td th:text="initial"></td>
-		<td th:text="${row.raw_val}" 
-			style="color: #206bc4; font-weight: 500;"></td>
-		<td th:text="${row.displace_val}"
-			style="color: #d63939; font-weight: 500;"></td>
+		<td th:text="${row.raw_val}" class="val-color-blue"></td>
+		<td th:text="${row.displace_val}" class="val-color-red"></td>
 		<td th:text="${row.from_dt}"></td>
 		<td th:text="${row.to_dt}"></td>
 	</tr>
 </tbody>
 
+
+<select id="datadel-logger-combo" class="form-select">
+	<th:block th:each="logger : ${loggerEventCombo}">
+		<option	th:text="${logger.code}" 
+			th:value="${logger.id}">
+		</option>
+	</th:block>
+	
+	<th:block th:if="${#lists.isEmpty(loggerEventCombo)}">
+		<option value="0" selected disabled>선택해주세요</option>
+	</th:block>
+</select>
+
+
+<select id="datadel-sensor-combo" class="form-select">
+	<option value="0" selected disabled>선택해주세요</option>
+	<option th:each="sensor : ${sensorEventCombo}" th:text="${sensor.code}" 
+		th:value="${sensor.id}" th:data-logger-id="${sensor.logger_id}">
+	</option>
+</select>

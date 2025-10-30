@@ -25,17 +25,26 @@ public class SystemAPIController {
 	private SystemAPIService systemAPIService;
 	
 	
+	/* (공용) 타겟 디테일 데이터 정보 */
+	@PostMapping("find")
+	@ResponseBody
+	public ResponseData findTargetOfDetail(@RequestBody Map<String, Object> params) {
+		return systemAPIService.selectTargetDetail(params);
+	}
+	
+	
+	
 	/* DMS 컨텐츠 내의 선택요소 정보 */
 	@PostMapping("combo")
 	public String selectCombo(@RequestBody Map<String, Object> params, Model model)  {
 		
 		/* 카테고리 기준 실행 서비스 정의 */
 		Map<String, Runnable> attrMap = Map.of(
-			"dmsSetting", () -> model.addAllAttributes(systemAPIService.selectComboOfDmsSetting(params))
+			"dmsSetting", () -> model.addAllAttributes(systemAPIService.selectComboOfDmsSetting(params)),
+			"dataDelete", () -> model.addAllAttributes(systemAPIService.selectComboOfDataDel(params))
 	    );
 		
-		String category = params.get("category").toString();
-		attrMap.getOrDefault(category, () -> {}).run();
+		attrMap.getOrDefault(params.get("category"), () -> {}).run();
 		return String.format("%s/content/combo", placeCode);
 	}
 	
@@ -141,10 +150,19 @@ public class SystemAPIController {
 	
 	
 	/* 파일관리 이동및백업 정보 */
-	@PostMapping("filemove")
+	@PostMapping("moveandbackup")
 	@ResponseBody
 	public ResponseData moveAndBackSave(@RequestBody Map<String, Object> params) {
 		return systemAPIService.upsertMoveAndBackup(params);
+	}
+	
+	
+	
+	/* 데이터 삭제 설정 정보 */
+	@PostMapping("datadelete")
+	@ResponseBody
+	public ResponseData dataDeleteSave(@RequestBody Map<String, Object> params) {
+		return systemAPIService.upsertDataDelete(params);
 	}
 	
 }

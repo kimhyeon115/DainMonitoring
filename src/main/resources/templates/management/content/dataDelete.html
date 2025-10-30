@@ -1,0 +1,165 @@
+
+<!-- 데이터 자동화 >> dataRemove 컨텐츠 -->
+<div class="container-xl mt-3">
+	<div class="append-card-datadel">
+		<div class="append-inner">
+			<div class="append-guide p-4 rounded">
+				<h1>데이터 자동화 > <small>데이터 삭제</small></h1>
+				<div class="append-input mb-3 mt-3">
+		  		    <strong>역할</strong>
+	  			</div>
+	  			<ul class="list-unstyled ml-3">
+		  		    <li>선택한 현장내 <b class="val-color-blue">진동, 소음계</b> 한정</li>
+		  		    <li>DB에 업로드된 데이터 중에서</li>
+		  		    <li>삭제 기준값 이상인 데이터 삭제 기능</li>
+	  			</ul>
+				<div class="append-input mb-3 mt-3">
+					<strong>사용 팁</strong>
+				</div>
+				<ul class="list-unstyled ml-3">
+					<li>입력한 적용 시작일시의 데이터부터 검증 및 삭제</li>
+					<li>마지막 검증 데이터의 일시가 최근 적용일시로 저장</li>
+				</ul>
+			</div>
+
+			<div id="AppendForm" class="append-form">
+				<div class="append-input mb-4">
+					<div class="append-input-inner">
+						<label class="form-label">현장</label>
+						<select class="form-select" id="place" onchange="SelectLoggerAndSensorCombo(this)">
+							<option value="0" disabled selected>선택해주세요</option>
+							<option th:each="place : ${selectPlaceCombo}" th:value="${place.id}" th:text="${place.short_name}"></option>
+						    </option>
+                        </select>
+					</div>
+					<div class="append-input-inner">
+						<label class="form-label">로거</label>
+						<select class="form-select" id="datadel-logger-combo" onchange="LoggerChangeFilterSensorCombo(this)">
+							<option value="0" disabled selected>선택해주세요</option>
+                        </select>
+					</div>
+                </div>
+				<div class="append-input mb-4">
+					<div class="append-input-inner">
+						<label class="form-label">센서</label>
+						<select class="form-select" id="datadel-sensor-combo">
+							<option value="0" disabled selected>선택해주세요</option>
+                        </select>
+					</div>
+					<div>
+						<label class="form-label">적용 항목</label>
+						<select class="form-select" id="target-column">
+							<option value="" disabled selected>선택해주세요</option>
+							<option value="correction">보정값 (correction)</option>
+							<option value="angle">각도값 (angle)</option>
+							<option value="displace">물리량 (displace)</option>
+							<option value="changed">변화량 (changed)</option>
+	                    </select>
+					</div>
+                </div>
+				<div class="path-section-bar"></div>
+				<div class="append-input mb-3">
+					<div class="append-input-inner">
+						<div class="form-label">적용 시작일시</div>
+						<input id="start-dt" type="datetime-local" step="1" class="form-control">
+					</div>
+					<div>
+						<div class="form-label">최근 적용일시</div>
+						<input id="last-dt" type="datetime-local" step="1" class="form-control" disabled>
+					</div>
+				</div>
+				<div class="path-section-bar"></div>
+				<div class="append-input mb-3">
+					<div class="append-input-inner-icon">
+						<div class="form-label">삭제 기준값</div>
+						<div class="input-row">
+							<input id="del-point" type="text" class="form-control" placeholder="기준값을 입력하세요"
+								oninput="validationDouble(this)">
+							<img src="/management/images/alert-circle.svg" alt="아이콘" style="width:24px; height:24px;" 
+								class="tooltip-icon" data-tooltip="적용 항목의 삭제 기준값을 초과한 데이터만 삭제됩니다.">
+						</div>
+					</div>
+					<div class="append-input-inner">
+						<div class="d-flex justify-content-end align-items-center check-run-btn">
+							<span>실행 여부</span>
+							<label class="form-check form-check-single form-switch">
+								<input id="run" class="form-check-input" type="checkbox">
+							</label>
+						</div>
+					</div>
+				</div>
+				<div class="append-button-datadel">
+					<div>
+						<a class="btn btn-6 btn-outline-primary" onclick="ResetDataAutomationForm('dataDelete')">초기화</a>
+					</div>
+					<div>
+						<a class="btn btn-6 btn-outline-success mx-1" onclick="UpsertDataDeleteInfo(true)">저장</a>
+						<a class="btn btn-6 btn-outline-danger" onclick="UpsertDataDeleteInfo(false)">삭제</a>
+					</div>
+					<input type="hidden" id="append-id" value="0">
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div th:fragment="dataDelete" class="container-xl mt-3">
+	<div class="card">
+		<div class="table-title">
+			<div>
+				<span class="table-title-text">Automatic data delete</span>
+			</div>
+			<div class="d-flex gap-3 align-items-center">
+				<div><strong>검색 조건</strong></div>
+				<select class="form-select select-filter" id="select-target" onchange="SelectedChangeFilterDataDeleteTr()">
+					<option value="">전체</option>
+					<option value="correction">보정값 (correction)</option>
+					<option value="angle">각도값 (angle)</option>
+					<option value="displace">물리량 (displace)</option>
+					<option value="changed">변화량 (changed)</option>
+                </select>
+			</div>
+		</div>
+		<div class="table-responsive">
+			<table class="table card-table table-vcenter text-nowrap datatable" id="collect-table">
+				<thead>
+					<tr>
+						<th style="width: 10%">현장 명칭</th>
+						<th style="width: 10%">로거 코드</th>
+						<th style="width: 10%">센서 코드</th>
+						<th style="width: 10%">센서 명칭</th>
+						<th style="width: 10%">삭제 기준값</th>
+						<th style="width: 10%">적용 항목</th>
+						<th style="width: 16%">적용 시작일시</th>
+						<th style="width: 16%">최근 적용일시</th>
+						<th style="width: 8%">실행 여부</th>
+					</tr>
+				</thead>
+				<tbody id="collect-body">
+					<tr th:each="row : ${selectDataDelete}" th:data-id="${row.id}" th:data-target="${row.target_column}"
+						class="row-list-tr" ondblclick="SelectedDataDeleteRow(this)">
+						<td class="ellipsis-cell" th:text="${row.place_name}"></td>
+						<td class="ellipsis-cell" th:text="${row.logger_code}"></td>
+						<td class="ellipsis-cell val-color-blue" th:text="${row.sensor_code}"></td>
+						<td class="ellipsis-cell" th:text="${row.sensor_name}"></td>
+						<td class="ellipsis-cell val-color-red" 
+							th:text="${(row.del_point % 1 == 0) ? row.del_point.intValue() : row.del_point}"></td>
+						<td class="ellipsis-cell" th:text="${row.target_column}"></td>
+						<td class="ellipsis-cell" th:text="${row.start_dt}"></td>
+						<td class="ellipsis-cell" th:text="${row.last_dt}"></td>
+						<td><span class="badge" th:classappend="${row.run ? 'bg-info' : 'bg-warning'}" 
+							th:text="${row.run ? '실행' : '정지'}"></span></td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+		<div class="card-footer">
+			<div class="row g-2 justify-content-center justify-content-sm-between">
+				<div class="col-auto d-flex align-items-center">
+					<p class="m-0 text-secondary"><strong id="total-count-row" th:text="${'Total ' + selectDataDelete.size()}"></strong></p>
+				</div>
+	        </div>
+		</div>
+	</div>
+	<div class="bottom-blank"></div>
+</div>

@@ -26,6 +26,35 @@ public class SystemAPIServiceImpl implements SystemAPIService {
 	@Autowired
 	private SystemMapper systemMapper;
 	
+	
+	/* (공용) 타겟 데이터 정보 조회 및 반환 */
+	public ResponseData selectTargetDetail(Map<String, Object> params) {
+
+		String type = Objects.toString(params.get("type"), null);
+		String id = Objects.toString(params.get("id"), null);
+		if (type == null || id == null) return ResponseData.of(HeaderEntity.bad());
+		
+		try {
+			Map<String, Object> body = switch (type) {
+				case "DMSlogger" -> systemMapper.selectSingleLogger(params);
+				case "DMSSensor" -> systemMapper.selectSingleSensor(params);
+				case "DMSsensortypesetting" -> systemMapper.selectSingleSensorTypeSetting(params);
+				case "moveandbackup" -> systemMapper.selectSingleMoveAndBackup(params);
+			    case "datadelete" 	-> systemMapper.selectSingleDataDelete(params);
+			    default -> null;
+			};
+
+			boolean available = (body != null);
+	        int code = available ? Const.SUCCESS_CODE : Const.NO_TARGET_CODE;
+	        String message = available ? Const.SUCCESS : Const.NO_TARGET;
+	
+	        return ResponseData.of(HeaderEntity.of(HttpStatus.OK, code, message), body);
+		} catch (Exception e) {
+			return ResponseData.of(HeaderEntity.fail());
+		}
+ 	}
+	
+	
 
 	/*  DMS 컨텐츠 콤보박스 데이터 반환 */
 	public Map<String, Object> selectComboOfDmsSetting(Map<String, Object> params) {
@@ -256,6 +285,16 @@ public class SystemAPIServiceImpl implements SystemAPIService {
 	/* DMS 초기치 정보 저장 */
 	public ResponseData insertDmsSensorInitial(Map<String, Object> params) {
 		try {
+			int targetCount = systemMapper.selectInitialCalculationCount(params);
+			
+			if (targetCount > 5000) {
+				return ResponseData.of(HeaderEntity.of(HttpStatus.OK, Const.BAD_REQUEST_CODE,
+	                "적용 대상 데이터가 " + targetCount + "건입니다.\n" +
+	                "5000건을 초과하므로 기간을 나누어 다시 설정하세요."));
+			} else {
+				systemMapper.updateSensorInitialCalculation(params);
+			}
+			
 			int success = systemMapper.insertDmsSensorInitial(params);
 			
 			int code  = (success > 0) ? Const.SUCCESS_CODE : Const.FAIL_CODE;
@@ -334,6 +373,47 @@ public class SystemAPIServiceImpl implements SystemAPIService {
 			int success = mode
 					? systemMapper.upsertMoveAndBackup(params)
 					: systemMapper.removeMoveAndBackup(params);
+			
+			int code = (success > 0) ? Const.SUCCESS_CODE : Const.FAIL_CODE;
+			String message = mode
+		            ? (success > 0 ? Const.UPSERT_SUCCESS : Const.UPSERT_FAIL)
+		            : (success > 0 ? Const.DELETE_SUCCESS : Const.DELETE_FAIL);
+			
+			return ResponseData.of(HeaderEntity.of(HttpStatus.OK, code, message));
+		} catch (Exception e) {
+			return ResponseData.of(HeaderEntity.fail());
+		}
+	}
+	
+	
+	
+	/*  데이터 삭제 컨텐츠 콤보박스 데이터 반환 */
+	public Map<String, Object> selectComboOfDataDel(Map<String, Object> params) {
+		String placeId = Objects.toString(params.get("placeId"), null);
+		
+        Map<String, Object> result = new LinkedHashMap<>();
+
+        if (placeId != null && !placeId.isEmpty()) {
+            Map<String, Supplier<List<Map<String, Object>>>> placeSuppliers = Map.of(
+                "loggerEventCombo", () -> systemMapper.selectEventLoggerCombo(placeId),
+                "sensorEventCombo", () -> systemMapper.selectEventSensorCombo(placeId)
+            );
+            placeSuppliers.forEach((key, supplier) -> result.put(key, supplier.get()));
+        }
+
+        return result;
+	}
+	
+	
+	
+	/* 파일관리 이동및백업 저장,수정,삭제 */
+	public ResponseData upsertDataDelete(Map<String, Object> params) {
+
+		try {
+			boolean mode = Boolean.parseBoolean(params.get("mode").toString());
+			int success = mode
+					? systemMapper.upsertDataDelete(params)
+					: systemMapper.removeDataDelete(params);
 			
 			int code = (success > 0) ? Const.SUCCESS_CODE : Const.FAIL_CODE;
 			String message = mode

@@ -61,8 +61,6 @@ public class LoginInterceptor implements HandlerInterceptor {
                             sessionMapper.updateSession(newExpiry, clientToken);
                             request.setAttribute("userSession", findToken);
                             return true;
-                        } else {
-                            sessionMapper.deleteSession(findToken.getToken());
                         }
                     }
                 }

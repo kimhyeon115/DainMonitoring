@@ -5,19 +5,19 @@
 
 	<select id="selectMoveAndBackup">
 		SELECT 
-			scf.id,
-			scf.name,
-			scf.pc_id,
-			scf.source_name,
-			scf.source_path,
-			scf.target_name,
-			scf.target_path,
-			scf.last_dt,
-			scf.used,
-			scf.run,
-			scf.parsing_type_id,
-			dc.name AS pc_text,
-			ac.text AS parsing_text
+			scf.id
+			,scf.name
+			,scf.pc_id
+			,scf.source_name
+			,scf.source_path
+			,scf.target_name
+			,scf.target_path
+			,DATE_FORMAT(scf.last_dt, '%Y-%m-%d %H:%i:%s') AS last_dt
+			,scf.used
+			,scf.run
+			,scf.parsing_type_id
+			,dc.name AS pc_text
+			,ac.text AS parsing_text
 		FROM system_collect_file scf 
 		JOIN dain_computer dc  
 			ON dc.id = scf.pc_id 
@@ -63,13 +63,13 @@
 		VALUES (
 			#{params.id}
 			,#{params.name}
-			,#{params.pc_id}
-			,#{params.source_name}
-			,#{params.source_path}
-			,#{params.target_name}
-			,#{params.target_path}
+			,#{params.pcId}
+			,#{params.sourceName}
+			,#{params.sourcePath}
+			,#{params.targetName}
+			,#{params.targetPath}
 			,#{params.run}
-			,#{params.parsing_type_id}
+			,#{params.parsingTypeId}
 		)
 		ON DUPLICATE KEY UPDATE
 			name = VALUES(name)
@@ -150,16 +150,7 @@
 	<select id="selectLoggerCombo">
 		SELECT
 			id
-			,place_id
 			,code
-			,name
-			,location
-			,cdma_no
-			,computer_id
-			,install_dt
-			,file_path
-			,cycle_check
-			,run
 		FROM dain_logger 
 		WHERE 
 			place_id = #{placeId} 
@@ -174,11 +165,6 @@
 			id
 			,logger_id
 			,code
-			,name
-			,IFNULL(location, '') AS location
-			,sensor_type_id
-			,sensor_order
-			,install_dt 
 		FROM dain_sensor 
 		WHERE 
 			place_id = #{placeId}
@@ -527,15 +513,6 @@
 		SELECT 
 			dsts.id
 			,dst.code
-			,dst.name
-			,dsts.group_order
-			,dsts.min_gauge
-			,dsts.max_gauge
-			,IFNULL(criteria_val1, '') AS criteria_val1
-			,IFNULL(criteria_val2, '') AS criteria_val2
-			,IFNULL(criteria_val3, '') AS criteria_val3
-			,dsts.interval
-			,dsts.hidden
 		FROM dain_sensor_type dst 
 		JOIN dain_sensor_type_setting dsts 
 			ON dsts.sensor_type_id = dst.id 
@@ -819,4 +796,236 @@
 			code = #{params.code}
 	</select>
 	
+	
+	<select id="selectEventPlaceCombo" resultType="Map">
+		SELECT DISTINCT 
+			dp.id
+			,dp.short_name
+		FROM dain_place dp 
+		INNER JOIN dain_logger dl 
+			ON dl.place_id = dp.id 
+			AND dl.cycle_check = false
+		WHERE 
+			dp.used = true 
+			AND dp.old_version = false 
+		ORDER BY 
+			dp.short_name ASC
+	</select>
+	
+	
+	<select id="selectEventLoggerCombo" resultType="Map">
+		SELECT
+			id
+			,code
+		FROM dain_logger
+		WHERE
+			place_id = #{placeId}
+			AND used = true
+			AND cycle_check = false
+		ORDER BY 
+			code ASC
+	</select>
+	
+	
+	<select id="selectEventSensorCombo" resultType="Map">
+		SELECT 
+			ds.id
+			,ds.code
+			,ds.logger_id
+		FROM dain_sensor ds
+		INNER JOIN dain_logger dl 
+			ON dl.id = ds.logger_id 
+			AND dl.cycle_check = false 
+		WHERE
+			ds.place_id = #{placeId}
+			AND ds.used = true
+		ORDER BY 
+			code ASC
+	</select>
+	
+	
+	<insert id="upsertDataDelete">
+		INSERT INTO system_data_delete (
+			id
+			,sensor_id
+			,del_point
+			,target_column
+			,start_dt
+			,last_dt
+			,run
+		)
+		VALUES (
+			#{params.id}
+			,#{params.sensorId}
+			,#{params.delPoint}
+			,#{params.targetColumn}
+			,#{params.startDt}
+			,#{params.lastDt}
+			,#{params.run}
+		)
+		ON DUPLICATE KEY UPDATE
+			sensor_id = VALUES(sensor_id)
+			,del_point = VALUES(del_point)
+			,target_column = VALUES(target_column)
+			,start_dt = VALUES(start_dt)
+			,last_dt = VALUES(last_dt)
+			,run = VALUES(run)
+	</insert>
+	
+	
+	<update id="removeDataDelete">
+		UPDATE 
+			system_data_delete 
+		SET 
+			used = false 
+		WHERE 
+			id = #{params.id}
+	</update>
+	
+	
+	<select id="selectDataDelete" resultType="Map">
+		SELECT 
+			sdd.id
+			,dp.short_name AS place_name
+			,dl.code AS logger_code
+			,ds.code AS sensor_code
+			,ds.name AS sensor_name
+			,sdd.del_point 
+			,sdd.target_column 
+			,DATE_FORMAT(sdd.start_dt, '%Y-%m-%d %H:%i:%s') AS start_dt 
+			,DATE_FORMAT(sdd.last_dt, '%Y-%m-%d %H:%i:%s') AS last_dt  
+			,sdd.run
+		FROM system_data_delete sdd 
+		LEFT JOIN dain_sensor ds 
+			ON ds.id = sdd.sensor_id
+		LEFT JOIN dain_logger dl 
+			ON dl.id = ds.logger_id 
+		LEFT JOIN dain_place dp 
+			ON dp.id = ds.place_id 
+		WHERE 
+			sdd.used = true
+		ORDER BY 
+			id
+	</select>
+	
+	
+	<select id="selectSingleLogger" resultType="Map">
+		SELECT
+			id
+			,place_id
+			,code
+			,name
+			,location
+			,cdma_no
+			,computer_id
+			,install_dt
+			,file_path
+			,cycle_check
+			,run
+		FROM dain_logger 
+		WHERE 
+			id = #{params.id}
+	</select>
+	
+	
+	<select id="selectSingleSensor" resultType="Map">
+		SELECT
+			id
+			,code
+			,name
+			,location
+			,sensor_type_id
+			,sensor_order
+			,DATE_FORMAT(install_dt, '%Y-%m-%d %H:%i:%s') AS install_dt
+		FROM dain_sensor 
+		WHERE 
+			id = #{params.id}
+	</select>
+	
+	
+	<select id="selectSingleSensorTypeSetting" resultType="Map">
+		SELECT
+			dsts.id
+			,dst.name
+			,dsts.group_order
+			,dsts.min_gauge
+			,dsts.max_gauge
+			,dsts.criteria_val1
+			,dsts.criteria_val2
+			,dsts.criteria_val3
+			,dsts.interval
+			,dsts.hidden
+		FROM dain_sensor_type_setting dsts 
+		JOIN dain_sensor_type dst 
+			ON dst.id = dsts.sensor_type_id 
+		WHERE 
+			dsts.id = #{params.id}
+	</select>
+	
+	
+	<select id="selectSingleDataDelete" resultType="Map">
+		SELECT 
+			sdd.id
+			,sdd.sensor_id 
+			,ds.code AS sensor_code
+			,ds.name AS sensor_name
+			,dl.id AS logger_id
+			,dl.code AS logger_code
+			,dp.id AS place_id
+			,dp.short_name AS place_name
+			,sdd.del_point 
+			,sdd.target_column 
+			,DATE_FORMAT(sdd.start_dt, '%Y-%m-%d %H:%i:%s') AS start_dt 
+			,DATE_FORMAT(sdd.last_dt, '%Y-%m-%d %H:%i:%s') AS last_dt 
+			,sdd.run
+		FROM system_data_delete sdd 
+		LEFT JOIN dain_sensor ds 
+			ON ds.id = sdd.sensor_id
+		LEFT JOIN dain_logger dl 
+			ON dl.id = ds.logger_id 
+		LEFT JOIN dain_place dp 
+			ON dp.id = ds.place_id 
+		WHERE 
+			sdd.id = #{params.id}
+	</select>
+	
+	
+	<select id="selectSingleMoveAndBackup" resultType="Map">
+		SELECT 
+			id
+			,name
+			,pc_id
+			,source_name
+			,source_path
+			,target_name
+			,target_path
+			,DATE_FORMAT(last_dt, '%Y-%m-%d %H:%i:%s') AS last_dt
+			,run
+			,parsing_type_id
+		FROM system_collect_file 
+		WHERE 
+			id = #{params.id}
+	</select>
+	
+	
+	<select id="selectInitialCalculationCount" resultType="int">
+		SELECT 
+			COUNT(*)
+	    FROM data_${params.place_code}
+	    WHERE 
+	    	measured_at >= #{params.from_dt}
+	    	AND sensor_id = #{params.sensor_id}
+	</select>
+	
+	
+	<update id="updateSensorInitialCalculation">
+	    UPDATE data_${params.place_code}
+	    SET 
+	        initial_val = #{params.displace_val},
+	        changed_val = (displace_val - #{params.displace_val})
+	    WHERE 
+	    	measured_at >= #{params.from_dt}
+	    	AND sensor_id = #{params.sensor_id}
+	</update>
+
 </mapper>

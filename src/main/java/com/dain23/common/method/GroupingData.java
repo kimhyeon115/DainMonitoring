@@ -102,7 +102,7 @@ public class GroupingData {
 	            String code = (String) row.get("sensor_code");
 
 	            String sensorTypeId = row.get("sensor_type_id").toString();
-	            if (sensorTypeId.equals("4") || sensorTypeId.equals("15")) column = displace;
+	            if (sensorTypeId.equals("15")) column = displace;
 	            else column = changed;
 	            
 	            Object valObj = row.get(column);

@@ -37,4 +37,13 @@ public class HeaderEntity {
 				.build();
 	}
 	
+	
+	public static HeaderEntity bad() {
+		return HeaderEntity.builder()
+				.code(HttpStatus.OK.value())
+				.messageCd(Const.BAD_REQUEST_CODE )
+				.message(Const.BAD_REQUEST)
+				.build();
+	}
+	
 }

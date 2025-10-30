@@ -48,7 +48,7 @@ function getTodayDate() {
 }
 
 
-/* 공용 API 요청 */
+/* 공용 | API 요청 */
 async function PostRequest(endpoint, body = {}, responseType = 'json') {
 	try {
 		const response = await fetch(`/management/system/api/${endpoint}`, {
@@ -69,20 +69,27 @@ async function PostRequest(endpoint, body = {}, responseType = 'json') {
 }
 
 
-/* 공용 결과 메시지 팝업 */
+/* 공용 | 결과 메시지 팝업 */
 function showMessage(msg) {
     alert(msg);
 }
 
 
-/* 공용 리스트 아이템 선택 처리 */
+/* 공용 | 화면 로딩 */
+function loadingScreen(confirm){
+	if (confirm) $('#loadingOverlay').show();
+	else $('#loadingOverlay').hide();
+}
+
+
+/* 공용 | 리스트 아이템 선택 처리 */
 function selectListItem($el, target, item = '> *') {
 	$el.find(item).removeClass('row-select');
 	$(target).addClass('row-select');
 }
 
 
-/* 공용 버튼 상태 변경 */
+/* 공용 | 버튼 상태 변경 */
 function setButtonState($btn, text, className) {
 	$btn.text(text)
 		.removeClass("btn-outline-primary btn-outline-warning btn-outline-danger")
@@ -90,7 +97,22 @@ function setButtonState($btn, text, className) {
 }
 
 
-/* 공용 알파벳만 입력 제한 */
+/* 공용 | 숫자만 입력 제한 */
+function validationDouble(el) {
+	el.value = el.value
+        .replace(/[^0-9.\-]/g, '')
+        .replace(/(\..*?)\..*/g, '$1')
+        .replace(/(?!^)-/g, '');
+
+    if (el.value === '.') el.value = '0.';
+    if (el.value === '-.') el.value = '-0.';
+
+    if (el.value.startsWith('.')) el.value = `0${el.value}`;
+    if (el.value.startsWith('-.')) el.value = `-0.${el.value.slice(2)}`;
+}
+
+
+/* 공용 | 알파벳만 입력 제한 */
 function validateEnglish(el, type) {
 	const before = el.value;
 	const baseRules = {
@@ -113,7 +135,7 @@ function validateEnglish(el, type) {
 }
 
 
-/* 공용 입력 전후값 비교 */
+/* 공용 | 입력 전후값 비교 */
 function twoValueComparison(el, before, after, msg) {
 	if (before !== after) {
 		el.value = after;
@@ -128,7 +150,7 @@ function twoValueComparison(el, before, after, msg) {
 }
 
 
-/* 공용 입력 필드 일괄 초기화 */
+/* 공용 | 입력 필드 일괄 초기화 */
 function setDefaultInputSettings() {
     document.querySelectorAll("input, textarea").forEach(el => {
         el.setAttribute("autocomplete", "off");
@@ -147,7 +169,7 @@ function setDefaultInputSettings() {
 }
 
 
-/* 공용 탑메뉴 드롭다운 닫기 */
+/* 공용 | 탑메뉴 드롭다운 닫기 */
 function closeDropdown(triggerElement) {
     const dropdown = triggerElement?.closest(".dropdown");
     if (!dropdown) return;
@@ -161,10 +183,42 @@ function closeDropdown(triggerElement) {
 }
 
 
+/* 공용 | 툴팁 호버시 노출 */
+function ToopTipShowMessage() {
+	$('.tooltip-icon').each(function() {
+        let $icon = $(this);
+        let $tooltip;
+
+        $icon.on('mouseenter', function() {
+            $tooltip = $('<div class="tooltip-box"></div>').text($icon.data('tooltip'));
+            $('body').append($tooltip);
+
+            let offset = $icon.offset();
+            let top = offset.top - $tooltip.outerHeight() - 8;
+            let left = offset.left + $icon.outerWidth()/2 - $tooltip.outerWidth()/2;
+
+            $tooltip.css({
+                top: top + 'px',
+                left: left + 'px',
+                opacity: 1,
+                position: 'absolute'
+            });
+        });
+
+        $icon.on('mouseleave', function() {
+            if ($tooltip) {
+                $tooltip.remove();
+                $tooltip = null;
+            }
+        });
+    });
+}
+
+
 /* 현재 화면 컨텐츠 조회 */
 async function loadContent(category, triggerElement) {
 	
-	const allowed = ["dmsSetting", "moveAndBackup"];
+	const allowed = ["dmsSetting", "moveAndBackup", "dataDelete"];
 	if (!allowed.includes(category)) {
 		showMessage("개발 진행중입니다.");
 		const prevCategory = $('#category').val();
@@ -185,34 +239,16 @@ async function loadContent(category, triggerElement) {
 		}
 		
 		setDefaultInputSettings();
-        if (category === 'dmsSetting') FilterCalculationButton();
+		ToopTipShowMessage();
+		
+        if (category === 'dmsSetting') {
+			FilterCalculationButton();
+		}
 		
 	} catch (error) {
 		console.error('페이지 로딩 실패:', error);
 		showMessage('페이지 로딩 중 오류가 발생했습니다.');
 	}
-}
-
-
-/* [이동및백업] 데이터 조회 테이블 필터 이벤트 */
-function onSelectFilterChange() {
-    const pcVal = $('#select_pc').val();
-    const parsingVal = $('#select_parsing').val();
-    const $rows = $('#collect_table tbody tr');
-
-    $rows.each(function () {
-        const $row = $(this);
-        const rowPc = $row.attr('data-pc_id');
-        const rowParsing = $row.attr('data-parsing_type_id');
-        const matchPc = !pcVal || rowPc === pcVal;
-        const matchParsing = !parsingVal || rowParsing === parsingVal;
-        const shouldShow = matchPc && matchParsing;
-
-        $row.toggle(shouldShow);
-    });
-
-    const visibleCount = $rows.filter(':visible').length;
-    $('#total_count_row').text('Total ' + visibleCount);
 }
 
 
@@ -231,7 +267,7 @@ function LevelValidation() {
 
 /******** DMS > DMS 설정 ************************************************************************************************/
 
-/* (DMS 공용) 화면 컨텐츠내 선택요소 최신값 요청 */
+/* DMS (공용) |  화면 컨텐츠내 선택요소 최신값 요청 */
 async function ComboChangePostMethod() {
 	const category = $('#category').val();
 
@@ -255,10 +291,17 @@ async function ComboChangePostMethod() {
 }
 
 
-/* (DMS 공용) 컨텐츠 탭타이틀 클릭 */
-function HideDmsTitleCard(target) {
+/* DMS (공용) | 컨텐츠 탭타이틀 클릭 */
+async function HideDmsTitleCard(target) {
+	await ComboChangePostMethod();
+	
     const $t = $(target);
     const groupName = target.dataset.group;
+
+    if (groupName && groupResetMap[groupName]) {
+        groupResetMap[groupName].forEach(e => ResetDmsForm(e, true));
+    }
+
     const $card = $t.closest('.dms-append-card');
     const $content = $card.find('.mini-container, .container, .small-container, .dms-middle-title');
     const $allContents = $('.mini-container, .container, .small-container, .dms-middle-title');
@@ -286,14 +329,10 @@ function HideDmsTitleCard(target) {
         $('.dms-set-title img').attr('src', '/management/images/chevrons-right.png');
         $t.find('img').attr('src', '/management/images/chevrons-down.png');
     }
-
-    if (groupName && groupResetMap[groupName]) {
-        groupResetMap[groupName].forEach(id => ResetDmsForm(id, true));
-    }
 }
 
 
-/* (DMS 공용) 입력값 중복사용 여부 검증 요청 */
+/* DMS (공용) | 입력값 중복사용 여부 검증 요청 */
 async function DuplicateCheck(target, type) {
 	const config = {
         place:      { selector: '#place-code',       key: 'code' },
@@ -341,7 +380,7 @@ async function DuplicateCheck(target, type) {
 }
 
 
-/* (DMS 공용) 입력값 중복여부 확인 결과 시각적 적용 이벤트 */
+/* DMS (공용) | 입력값 중복여부 확인 결과 시각적 적용 이벤트 */
 function CheckingDuplicateResult(target, messageCd) {
 	target.className = "btn btn-6"; 
 
@@ -358,18 +397,17 @@ function CheckingDuplicateResult(target, messageCd) {
 }
 
 
-/* (DMS 공용) 입력값 변화시 버튼 초기화 */
+/* DMS (공용) | 입력값 변화시 버튼 초기화 */
 function validateInputChange(target) {
 	const $btn = $(target).next("a");
 	setButtonState($btn, '중복확인', 'btn-outline-warning');
 }
 
 
-/* DMS PC정보 저장,수정,삭제 요청 */
+/* DMS | PC정보 저장,수정,삭제 요청 */
 async function UpsertDmsComputerInfoForm(mode) {
 	const FORM_TYPE = 'computer';
     const result = DmsComputerFormValidation(mode);
-
     if (typeof result === 'string') return showMessage(result);
 
     if (!mode) {
@@ -379,18 +417,18 @@ async function UpsertDmsComputerInfoForm(mode) {
 
     try {
         const res = await PostRequest(FORM_TYPE, result);
-        showMessage(res.header?.message || "처리에 실패했습니다.");
+        showMessage(res.header.message || "처리에 실패했습니다.");
     } catch (e) {
         console.error(e);
         showMessage("서버와의 연결에 문제가 발생했습니다. (네트워크 오류)");
     } finally {
-        ComboChangePostMethod();
+        await ComboChangePostMethod();
         ResetDmsForm(FORM_TYPE);
     }
 }
 
 
-/* DMS PC정보 입력값 유효검증 + body 반환 */
+/* DMS | PC정보 입력값 유효검증 + body 반환 */
 function DmsComputerFormValidation(mode) {
 	const id = $('#computer-id').val();
     const name = $('#computer-name').val().trim();
@@ -407,7 +445,7 @@ function DmsComputerFormValidation(mode) {
 }
 
 
-/* DMS PC정보 내의 PC 리스트 클릭 */
+/* DMS | PC정보 내의 PC 리스트 클릭 */
 function SelectedComputerLi(target) {
 	selectListItem($('#computer-ul'), target, 'li');
 	
@@ -428,11 +466,10 @@ function SelectedComputerLi(target) {
 }
 
 
-/* DMS 업체정보 저장,수정,삭제 요청 */
+/* DMS | 업체정보 저장,수정,삭제 요청 */
 async function UpsertDmsCompanyInfoForm(mode) {
     const FORM_TYPE = 'company';
     const result = DmsCompanyFormValidation(mode);
-
     if (typeof result === 'string') return showMessage(result);
 
     if (!mode) {
@@ -442,18 +479,18 @@ async function UpsertDmsCompanyInfoForm(mode) {
 
     try {
         const res = await PostRequest(FORM_TYPE, result);
-        showMessage(res.header?.message || "처리에 실패했습니다.");
+        showMessage(res.header.message || "처리에 실패했습니다.");
     } catch (e) {
         console.error(e);
         showMessage("서버와의 연결에 문제가 발생했습니다. (네트워크 오류)");
     } finally {
-		ComboChangePostMethod();
+		await ComboChangePostMethod();
         ResetDmsForm(FORM_TYPE);
     }
 }
 
 
-/* DMS 업체정보 입력값 유효검증 + body 반환 */
+/* DMS | 업체정보 입력값 유효검증 + body 반환 */
 function DmsCompanyFormValidation(mode) {
     const id = $('#company-id').val();
     const full_name = $('#company-full-name').val().trim();
@@ -471,7 +508,7 @@ function DmsCompanyFormValidation(mode) {
 }
 
 
-/* DMS 업체정보 내의 현장 리스트 클릭 */
+/* DMS | 업체정보 내의 현장 리스트 클릭 */
 function SelectedCompanyLi(target) {
 	selectListItem($('#company-ul'), target, 'li');
 	
@@ -487,7 +524,7 @@ function SelectedCompanyLi(target) {
 }
 
 
-/* DMS 현장정보 저장,수정,삭제 요청 */
+/* DMS | 현장정보 저장,수정,삭제 요청 */
 async function UpsertDmsPlaceInfoForm(mode) {
 	const FORM_TYPE = 'place';
 	const result = DmsPlaceFormValidation(mode);
@@ -500,18 +537,18 @@ async function UpsertDmsPlaceInfoForm(mode) {
 
 	try {
 		const res = await PostRequest(FORM_TYPE, result);
-		showMessage(res.header?.message || "처리에 실패했습니다.");
+		showMessage(res.header.message || "처리에 실패했습니다.");
 	} catch (e) {
 		console.error(e);
 		showMessage("서버와의 연결에 문제가 발생했습니다. (네트워크 오류)");
 	} finally {
-		ComboChangePostMethod();
+		await ComboChangePostMethod();
 		ResetDmsForm(FORM_TYPE);
 	}
 }
 
 
-/* DMS 현장정보 입력값 유효검증 + body 반환 */
+/* DMS | 현장정보 입력값 유효검증 + body 반환 */
 function DmsPlaceFormValidation(mode) {
 	const code = $('#place-code').val().trim();
     const short_name = $('#place-short-name').val().trim();
@@ -542,7 +579,7 @@ function DmsPlaceFormValidation(mode) {
 }
 
 
-/* DMS 현장정보 현장코드 입력시 접속정보 자동입력 */
+/* DMS | 현장정보 현장코드 입력시 접속정보 자동입력 */
 function autoFillConnection(val) {
 	if (!val) $('#place-url').val('');
 	else $('#place-url').val(`http://dain23.iptime.org/${val}`);
@@ -551,7 +588,7 @@ function autoFillConnection(val) {
 }
 
 
-/* DMS 현장정보 내의 현장 리스트 클릭 */
+/* DMS | 현장정보 내의 현장 리스트 클릭 */
 function SelectedPlaceLi(target) {
 	selectListItem($('#place-ul'), target, 'li');
 	
@@ -588,7 +625,7 @@ function SelectedPlaceLi(target) {
 }
 
 
-/* DMS 로거정보 저장,수정,삭제 요청 */
+/* DMS | 로거정보 저장,수정,삭제 요청 */
 async function UpsertDmsLoggerInfoForm(mode) {
 	const FORM_TYPE = 'logger';
 	const result = DmsLoggerFormValidation(mode);
@@ -601,7 +638,8 @@ async function UpsertDmsLoggerInfoForm(mode) {
 
 	try {
 		const res = await PostRequest(FORM_TYPE, result);
-		showMessage(res.header?.message || "처리에 실패했습니다.");
+		showMessage(res.header.message || "처리에 실패했습니다.");
+		
 		const category = $('#category').val();
 		const $html = await PostRequest("combo", { category, placeId: result.place_id }, "text");
         const $parsed = $('<div>').html($html);
@@ -615,7 +653,7 @@ async function UpsertDmsLoggerInfoForm(mode) {
 }
 
 
-/* DMS 로거정보 입력값 유효검증 + body 반환 */
+/* DMS | 로거정보 입력값 유효검증 + body 반환 */
 function DmsLoggerFormValidation(mode) {
 	const id = $('#logger-id').val();
 	const place_id = $('#logger-place-id').val();
@@ -646,19 +684,19 @@ function DmsLoggerFormValidation(mode) {
 }
 
 
-/* DMS 로거정보 내의 현장 리스트 클릭 */
-async function SelectedLoggerPlaceLi(target) {
-	selectListItem($('#logger-place-ul'), target, 'li');
+/* DMS | 로거정보 내의 현장 리스트 클릭 */
+async function SelectedLoggerPlaceLi(el) {
+	selectListItem($('#logger-place-ul'), el, 'li');
+	ResetDmsForm('logger');
 	
 	const category = $('#category').val();
-    const placeId = target.dataset.id;
+    const placeId = $(el).data('id');
     $('#logger-place-id').val(placeId);
 	
 	try {
 		const $html = await PostRequest("combo", { category, placeId }, "text");
         const $parsed = $('<div>').html($html);
 		$('#logger-ul').html($parsed.find('#logger-ul').html());
-    	ResetDmsForm('logger');
 	} catch (e) {
 		console.error(e);
 		showMessage("서버와의 연결에 문제가 발생했습니다. (네트워크 오류)");
@@ -666,40 +704,54 @@ async function SelectedLoggerPlaceLi(target) {
 }
 
 
-/* DMS 로거정보 내의 로거 리스트 클릭 */
-function SelectedLoggerLi(target) {
-	selectListItem($('#logger-ul'), target, 'li');
+/* DMS | 로거정보 내의 로거 리스트 클릭 */
+async function SelectedLoggerLi(el) {
+	selectListItem($('#logger-ul'), el, 'li');
 	
-	const ds = target.dataset;
-	const d = {
-		id: ds.id,
-		place_id: ds.place_id,
-		code: ds.code,
-		name: ds.name,
-		location: ds.location || '',
-		cdma_no: ds.cdma_no || '',
-		computer_id: ds.computer_id,
-		install_dt: ds.install_dt,
-		file_path: ds.file_path,
-		cycle_check: ds.cycle_check === 'true' ? '1' : '0',
-		run: ds.run === 'true'
-	};
+    const id = $(el).data('id');
+	const type = 'DMSlogger';
+	
+	try {
+		const res = await PostRequest('find', { id, type });
 
-	$('#logger-id').val(d.id);
-	$('#logger-code').val(d.code).prop('disabled', true);
-	$('#logger-name').val(d.name);
-	$('#logger-location').val(d.location);
-	$('#logger-cdma-no').val(d.cdma_no);
-	$('#logger-computer-id').val(d.computer_id);
-	$('#logger-install-dt').val(d.install_dt);
-	$('#logger-file-path').val(d.file_path);
-	$('#logger-cycle-check').val(d.cycle_check);
-	$('#logger-run').prop('checked', d.run);
-	setButtonState($('#checking-logger-code'), '사용가능', 'btn-outline-primary');
+		if (res.header.messageCd !== 200) {
+			showMessage(res.header.message);
+			ResetDmsForm('logger');
+			return;
+		}
+
+		const d = res.body;
+		const $loggerId = $('#logger-id');
+		const $loggerCode = $('#logger-code');
+		const $loggerName = $('#logger-name');
+		const $loggerLocation = $('#logger-location');
+		const $loggerCdmaNo = $('#logger-cdma-no');
+		const $loggerComputerId = $('#logger-computer-id');
+		const $loggerInstallDt = $('#logger-install-dt');
+		const $loggerFilePath = $('#logger-file-path');
+		const $loggerCycleCheck = $('#logger-cycle-check');
+		const $loggerRun = $('#logger-run');
+		
+		$loggerId.val(d.id);
+		$loggerCode.val(d.code).prop('disabled', true);
+		$loggerName.val(d.name);
+		$loggerLocation.val(d.location || '');
+		$loggerCdmaNo.val(d.cdma_no || '');
+		$loggerComputerId.val(d.computer_id);
+		$loggerInstallDt.val(d.install_dt);
+		$loggerFilePath.val(d.file_path);
+		$loggerCycleCheck.val(d.cycle_check ? '1' : '0');
+		$loggerRun.prop('checked', d.run);
+		setButtonState($('#checking-logger-code'), '사용가능', 'btn-outline-primary');
+	} catch (e) {
+		console.error(e);
+		showMessage("서버와의 연결에 문제가 발생했습니다. (네트워크 오류)");
+		ResetDmsForm('logger');
+	}
 }
 
 
-/* DMS 로거정보 내의 로거 리스트중에서 중복여부 확인 */
+/* DMS | 로거정보 내의 로거 리스트중에서 중복여부 확인 */
 function validateCheckLoggerLi(el) {
 	el.value = el.value.replace(/\s/g, '');
 	const inputCode = el.value;
@@ -716,21 +768,24 @@ function validateCheckLoggerLi(el) {
 }
 
 
-/* DMS 센서정보 저장,수정,삭제 요청 */
+/* DMS | 센서정보 저장,수정,삭제 요청 */
 async function UpsertDmsSensorInfoForm(mode) {
 	const FORM_TYPE = 'sensor';
 	const result = DmsSensorFormValidation(mode);
 	if (typeof result === 'string') return showMessage(result);
 	
 	if (!mode) {
-		if (result.id === '0') return ResetDmsForm(FORM_TYPE);
+		if (result.id == '0') return ResetDmsForm(FORM_TYPE);
 		if (!confirm(`[${result.code}]의 정보를 삭제하겠습니까?`)) return;
 	}
 	
 	try {
 		const res = await PostRequest(FORM_TYPE, result);
-		showMessage(res.header?.message || "처리에 실패했습니다.");
-		
+		showMessage(res.header.message || "처리에 실패했습니다.");
+	} catch (e) {
+		console.error(e);
+		showMessage("서버와의 연결에 문제가 발생했습니다. (네트워크 오류)");
+	} finally {
 		const category = $('#category').val();
 		const $html = await PostRequest("combo", { category, placeId: result.place_id }, "text");
         const $parsed = $('<div>').html($html);
@@ -739,16 +794,13 @@ async function UpsertDmsSensorInfoForm(mode) {
 		const $combo = $('#sensor-logger-combo');
 		$combo.val(result.logger_id);
 		$combo.trigger('change');
-	} catch (e) {
-		console.error(e);
-		showMessage("서버와의 연결에 문제가 발생했습니다. (네트워크 오류)");
-	} finally {
+		
 		ResetDmsForm(FORM_TYPE);
 	}
 }
 
 
-/* DMS 센서정보 입력값 유효검증 + body 반환 */
+/* DMS | 센서정보 입력값 유효검증 + body 반환 */
 function DmsSensorFormValidation(mode) {
 	const id = $('#sensor-id').val();
 	const place_id = $('#sensor-place-id').val();
@@ -760,7 +812,7 @@ function DmsSensorFormValidation(mode) {
 	const sensor_order = $('#sensor-order').val();
 	const duplicateCheck = $('#checking-sensor-code').text();
 	
-	if (place_id === '0' || logger_id === '0') return '[현장, 로거]를 먼저 선택하세요.';
+	if (place_id == '0' || logger_id == '0' || logger_id == null) return '[현장, 로거]를 먼저 선택하세요.';
 	if (!code || !name || !install_dt || !sensor_type_id || !sensor_order) return '*필수 정보* 모두 입력해 주세요.';
 	if (duplicateCheck !== '사용가능') return '[센서코드] 중복확인 후 저장하세요';
 	
@@ -779,36 +831,36 @@ function DmsSensorFormValidation(mode) {
 }
 
 
-/* DMS 센서정보 내의 현장 리스트 클릭 */
-async function SelectedSensorPlaceLi(target) {	
-	selectListItem($('#sensor-place-ul'), target, 'li');
+/* DMS | 센서정보 내의 현장 리스트 클릭 */
+async function SelectedSensorPlaceLi(el) {	
+	selectListItem($('#sensor-place-ul'), el, 'li');
 	
 	const category = $('#category').val();
-    const placeId = target.dataset.id;
+	const d = $(el).data();
+    const placeId = d.id;
 	$('#sensor-place-id').val(placeId);
-    $('#sensor-place-code').val(target.dataset.code);
+    $('#sensor-place-code').val(d.code);
 	
 	try {
 		const $html = await PostRequest('combo', { category, placeId }, 'text');
 		const $parsed = $('<div>').html($html);
 		$('#sensor-logger-combo').html($parsed.find('#sensor-logger-combo').html());
         $('#sensor-ul').html($parsed.find('#sensor-ul').html());
-
-        const $combo = $('#sensor-logger-combo');
-        const optionCount = $combo.find('option').length;
-        $combo.find(`option:eq(${optionCount > 1 ? 1 : 0})`).prop('selected', true).trigger('change');
-		ResetDmsForm('sensor');
-        ResetDmsForm('applyCalculation', true);
 	} catch (e) {
 		console.error(e);
 		showMessage("서버와의 연결에 문제가 발생했습니다. (네트워크 오류)");
+	} finally {
+        const $combo = $('#sensor-logger-combo');
+		$combo.prop('selectedIndex', 0).trigger('change');
+		ResetDmsForm('sensor');
+        ResetDmsForm('applyCalculation', true);
 	}
 }
 
 
-/* DMS 센서정보 로거콤보 변경시 센서 필터 */
+/* DMS | 센서정보 로거콤보 변경시 센서 필터 */
 function validateSensorLoggerChange(el) {
-	const loggerId = $(el).val();
+	const loggerId = $(el).val() || '0';
 	const $sensorList = $('#sensor-ul');
 	const $items = $sensorList.find('li.sensor-item');
 
@@ -820,7 +872,7 @@ function validateSensorLoggerChange(el) {
 	});
 	
 	$sensorList.find('.no-sensor-msg').remove();
-	if (visibleCount === 0) {
+	if (visibleCount === 0 && loggerId != '0') {
 		$sensorList.append('<li class="no-sensor-msg">센서를 추가하세요</li>');
 	}
 
@@ -832,38 +884,18 @@ function validateSensorLoggerChange(el) {
 }
 
 
-/* DMS 센서정보 내의 센서 리스트 클릭 */
-async function SelectedSensorLi(target) {
-	selectListItem($('#sensor-ul'), target, 'li');
-	
-	const ds = target.dataset;
-	const d = {
-		id: ds.id,
-		code: ds.code,
-		name: ds.name,
-		location: ds.location,
-		install_dt: ds.install_dt,
-		sensor_type_id: ds.sensor_type_id,
-		sensor_order: ds.sensor_order
-	};
-	
-	$('#sensor-id').val(d.id);
-	$('#sensor-code').val(d.code);
-	$('#sensor-name').val(d.name);
-	$('#sensor-location').val(d.location);
-	$('#sensor-install-dt').val(d.install_dt);
-	$('#sensor-sensor-type').val(d.sensor_type_id);
-	$('#sensor-order').val(d.sensor_order);
-	setButtonState($('#checking-sensor-code'), '사용가능', 'btn-outline-primary');
-	
+/* DMS | 센서정보 내의 센서 리스트 클릭 */
+async function SelectedSensorLi(el) {
+	selectListItem($('#sensor-ul'), el, 'li');
 	ResetDmsForm('applyCalculation');
 	ResetDmsForm('sensorInitial');
-	$('#initial-sensor-code').val(d.code);
 	
+	const id = $(el).data('id');
+	const type = 'DMSSensor';
 	const comboBody = {
 		category: $('#category').val(),
 		placeId: $('#sensor-place-id').val(),
-		sensorId: d.id
+		sensorId: id
 	};
 	
 	try {
@@ -872,14 +904,47 @@ async function SelectedSensorLi(target) {
 	    $('#apply-calculation-body').html($parsed.find('#apply-calculation-body').html());
 		setCalculationOfParam();
 		$('#sensor-initial-body').html($parsed.find('#sensor-initial-body').html());
+		
+		const res = await PostRequest('find', { id, type });
+		
+		if (res.header.messageCd !== 200) {
+			showMessage(res.header.message);
+			ResetDmsForm('applyCalculation');
+			ResetDmsForm('sensorInitial');
+			ResetDmsForm('sensor');
+			return;
+		}
+		
+		const d = res.body;
+		const $sensorId = $('#sensor-id');
+		const $sensorCode = $('#sensor-code');
+		const $sensorName = $('#sensor-name');
+		const $sensorLocation = $('#sensor-location');
+		const $sensorInstallDt = $('#sensor-install-dt');
+		const $sensorSensorType = $('#sensor-sensor-type');
+		const $sensorOrder = $('#sensor-order');
+		const $initialSensorCode = $('#initial-sensor-code');
+		
+		$sensorId.val(d.id);
+		$sensorCode.val(d.code);
+		$sensorName.val(d.name);
+		$sensorLocation.val(d.location);
+		$sensorInstallDt.val(d.install_dt);
+		$sensorSensorType.val(d.sensor_type_id);
+		$sensorOrder.val(d.sensor_order);
+		$initialSensorCode.val(d.code);
+		setButtonState($('#checking-sensor-code'), '사용가능', 'btn-outline-primary');
 	} catch (e) {
 		console.error(e);
 		showMessage("서버와의 연결에 문제가 발생했습니다. (네트워크 오류)");
+		ResetDmsForm('applyCalculation');
+		ResetDmsForm('sensorInitial');
+		ResetDmsForm('sensor');
 	}
 }
 
 
-/* DMS 센서정보 적용 계산식 저장 요청 */
+/* DMS | 센서정보 적용 계산식 저장 요청 */
 async function InsertDmsSensorApplyCalculation() {
 	const result = DmsSensorApplyCalculationFormValidation();
 	if (typeof result === 'string') return showMessage(result);
@@ -907,7 +972,7 @@ async function InsertDmsSensorApplyCalculation() {
 }
 
 
-/* DMS 센서정보 적용 계산식 입력값 유효검증 + body 반환 */
+/* DMS | 센서정보 적용 계산식 입력값 유효검증 + body 반환 */
 function DmsSensorApplyCalculationFormValidation() {
 	const sensor_id = $('#sensor-id').val();
 	const target = $('#sensor-target-column').val();
@@ -943,7 +1008,7 @@ function DmsSensorApplyCalculationFormValidation() {
 }
 
 
-/* DMS 센서정보 적용 계산식 테이블 대입값 적용 */
+/* DMS | 센서정보 적용 계산식 테이블 대입값 적용 */
 function setCalculationOfParam() {
 	$('#apply-calculation-body tr').each(function () {
 		const $tr = $(this);
@@ -962,7 +1027,7 @@ function setCalculationOfParam() {
 }
 
 
-/* DMS 센서정보 적용 항목 변경시 적용 공식 필터 */
+/* DMS | 센서정보 적용 항목 변경시 적용 공식 필터 */
 function AppylTargetChangeFilterCalculationCombo() {
 	const selectedVal = $('#sensor-target-column').val();
 	const $calculation = $('#sensor-apply-calculation');
@@ -975,7 +1040,7 @@ function AppylTargetChangeFilterCalculationCombo() {
 }
 
 
-/* DMS 센서정보 적용 계산식 변경시 입력폼 재설정 */
+/* DMS | 센서정보 적용 계산식 변경시 입력폼 재설정 */
 function ApplyCalculationChangeCombo(el) {
 	const value = $(el).val();
 	$('#final-calculation').val(value);
@@ -990,7 +1055,7 @@ function ApplyCalculationChangeCombo(el) {
 }
 
 
-/* DMS 센서정보 적용 계산식 파람 입력값 계산식에 대입 */
+/* DMS | 센서정보 적용 계산식 파람 입력값 계산식에 대입 */
 function ParamOnInputChangeCalculation(el) {
 	el.value = el.value
         .replace(/[^0-9.\-]/g, '')
@@ -1019,7 +1084,7 @@ function ParamOnInputChangeCalculation(el) {
 }
 
 
-/* DMS 센서정보 적용 계산식 조회 데이터 테이블 필터 */
+/* DMS | 센서정보 적용 계산식 조회 데이터 테이블 필터 */
 function ApplyCalculationChangeFilter(el) {
 	const value = $(el).val();
 	$('#apply-calculation-body tr').each(function () {
@@ -1028,14 +1093,15 @@ function ApplyCalculationChangeFilter(el) {
 }
 
 
-/* DMS 센서정보 적용 초기치 저장 */
+/* DMS | 센서정보 적용 초기치 저장 */
 async function InsertDmsSensorInitial() {
 	const result = await InsertDmsSensorInitialFormValidation();
 	if (typeof result === 'string') return showMessage(result);
 	
 	try {
+		loadingScreen(true);
 		const res = await PostRequest('sensorinitial', result);
-		showMessage(res.header?.message || "처리에 실패했습니다.");
+		showMessage(res.header.message || "처리에 실패했습니다.");
 					
 		const comboBody = {
 			category: $('#category').val(),
@@ -1051,27 +1117,47 @@ async function InsertDmsSensorInitial() {
 		showMessage("서버와의 연결에 문제가 발생했습니다. (네트워크 오류)");
 	} finally {
 		ResetDmsForm('sensorInitial');
+		loadingScreen(false);
 	}
 }
 
 
-/* DMS 센서정보 적용 초기치 입력값 유효검증 + body 반환 */
+/* DMS | 센서정보 적용 초기치 입력값 유효검증 + body 반환 */
 async function InsertDmsSensorInitialFormValidation() {
 	const comboBody = {
 		category: $('#category').val(),
 		placeId: $('#sensor-place-id').val(),
 		sensorId: $('#sensor-id').val()
 	};
-	if (comboBody.placeId === '0' || comboBody.sensorId === '0')
+	if (comboBody.placeId == '0' || comboBody.sensorId == '0')
 		return '[현장]과 [센서]를 먼저 선택하세요.';
 
 	const initial = $('#initial-sensor-val').val().trim();
-	const from_dt = $('#sensor-initial-start').val();
-	const toDtVal = $('#sensor-initial-end').val().replace(' ', 'T');
-	const to_dt = toDtVal === '' ? null : toDtVal;
+	const from_dt = $('#sensor-initial-start').val().replace('T', ' ');
+	const toDtVal = $('#sensor-initial-end').val().replace('T', ' ');
+	const to_dt = toDtVal == '' ? null : toDtVal;
 	
 	if (!initial || !from_dt)
 		return '[초기 측정값]과 [적용 시작일시]를 입력하세요.';
+	
+	const fromTime = new Date(from_dt).getTime();
+	const toTime = to_dt == null ? Date.now() : new Date(to_dt).getTime();
+	const diffMonths = (toTime - fromTime) / (1000 * 60 * 60 * 24 * 30.44);
+
+	if (toTime < fromTime) {
+	    return '[적용 종료일시]는 [적용 시작일시]보다 이후여야 합니다.';
+	}
+
+	if (diffMonths > 6) {
+	    if (to_dt == null) {
+	        return '[적용 종료일시] 미기입 시 [적용 시작일시]는\n' +
+	               '현재 시점으로부터 6개월 이내만 설정할 수 있습니다.\n\n' +
+	               '※기간이 길 경우 여러 건으로 나누어 등록하세요.';
+	    } else {
+	        return '[적용 기간]은 최대 6개월까지만 설정할 수 있습니다.\n\n' +
+	               '※기간이 길 경우 여러 건으로 나누어 등록하세요.';
+	    }
+	}
 
 	const $html = await PostRequest('combo', comboBody, 'text');
 	const $parsed = $('<table>' + $html + '</table>');
@@ -1093,7 +1179,7 @@ async function InsertDmsSensorInitialFormValidation() {
 	if (applyObj.length === 0)
 		return '[센서 적용 계산식]을 먼저 등록하세요.';
 
-	const toDate = s => new Date(s.replace(' ', 'T'));
+	const toDate = s => new Date(s.replace('T', ' '));
 	const requiredTargets = ['correction', 'displace'];
 	
 	if (applyObj.some(o => o.calculation.includes('angle'))) {
@@ -1138,6 +1224,7 @@ async function InsertDmsSensorInitialFormValidation() {
 		return showMessage('계산 중 오류가 발생했습니다. 수식을 확인하세요.');
 	
 	return {
+		place_code: $('#sensor-place-code').val().trim(),
 		sensor_id: comboBody.sensorId,
 		raw_val: result.initial,
 		displace_val: result.displace,
@@ -1147,7 +1234,7 @@ async function InsertDmsSensorInitialFormValidation() {
 }
 
 
-/* DMS 센서정보 초기치 계산식 적용 계산 */
+/* DMS | 센서정보 초기치 계산식 적용 계산 */
 function evaluateFormula(formula, vars) {
 	try {
 		const mathContext = {
@@ -1173,7 +1260,7 @@ function evaluateFormula(formula, vars) {
 }
 
 
-/* DMS 센서정보 초기치 계산식 적용 중간 계산 결과 */
+/* DMS | 센서정보 초기치 계산식 적용 중간 계산 결과 */
 function calculateValues(latestRecords, initial) {
 	const vars = {};
 	const baseVal = Number(Number(initial).toFixed(3));
@@ -1200,31 +1287,35 @@ function calculateValues(latestRecords, initial) {
 }
 
 
-/* DMS 센서타입정보 저장,수정,삭제 요청 */
+/* DMS | 센서타입정보 저장,수정,삭제 요청 */
 async function UpsertDmsSensorTypeInfoForm(mode) {
 	const FORM_TYPE = 'sensortype';
 	const result = DmsSensorTypeFormValidation(mode);
 	if (typeof result === 'string') return showMessage(result);
 	
 	if (!mode) {
-		if (result.id === '0') return ResetDmsForm(FORM_TYPE);
+		if (result.id == '0') return ResetDmsForm(FORM_TYPE);
 		if (!confirm(`[${result.name}]의 정보를 삭제하겠습니까?`)) return;
 	}
 	
 	try {
 		const res = await PostRequest(FORM_TYPE, result);
-		showMessage(res.header?.message || "처리에 실패했습니다.");
+		showMessage(res.header.message || "처리에 실패했습니다.");
+		
+		const category = $('#category').val();
+		const $html = await PostRequest('combo', { category }, 'text');
+		const $parsed = $('<div>' + $html + '</div>');
+	    $('#sensor-type-ul').html($parsed.find('#sensor-type-ul').html());
 	} catch (e) {
 		console.error(e);
 		showMessage("서버와의 연결에 문제가 발생했습니다. (네트워크 오류)");
 	} finally {
-		ComboChangePostMethod();
 		ResetDmsForm('sensorType');
 	}
 }
 
 
-/* DMS 센서타입정보 입력값 유효검증 + body 반환 */
+/* DMS | 센서타입정보 입력값 유효검증 + body 반환 */
 function DmsSensorTypeFormValidation(mode) {
 	const id = $('#sensor-type-id').val();
 	const code = $('#sensor-type-code').val().trim();
@@ -1243,11 +1334,11 @@ function DmsSensorTypeFormValidation(mode) {
 }
 
 
-/* DMS 센서타입정보 내의 센서타입 리스트 클릭 */
-function SelectedSensorTypeLi(target) {
-	selectListItem($('#sensor-type-ul'), target, 'li');
+/* DMS | 센서타입정보 내의 센서타입 리스트 클릭 */
+function SelectedSensorTypeLi(el) {
+	selectListItem($('#sensor-type-ul'), el, 'li');
 	
-	const { id, code, name } = target.dataset;
+	const { id, code, name } = el.dataset;
 	
 	$('#sensor-type-id').val(id);
 	$('#sensor-type-code').val(code).prop('disabled', true);
@@ -1256,7 +1347,7 @@ function SelectedSensorTypeLi(target) {
 }
 
 
-/* DMS 센서타입정보 현장적용 센서타입설정 저장 요청 */
+/* DMS | 센서타입정보 현장적용 센서타입설정 저장 요청 */
 async function UpsertDmsSensorTypePlaceSensorTypeInfoForm() {
 	const FORM_TYPE = 'sensortypesetting';
 	const result = DmsSensorTypePlaceSensorTypeFormValidation();
@@ -1264,7 +1355,7 @@ async function UpsertDmsSensorTypePlaceSensorTypeInfoForm() {
 	
 	try {
 		const res = await PostRequest(FORM_TYPE, result);
-		showMessage(res.header?.message || "처리에 실패했습니다.");
+		showMessage(res.header.message || "처리에 실패했습니다.");
 	} catch (e) {
 		console.error(e);
 		showMessage("서버와의 연결에 문제가 발생했습니다. (네트워크 오류)");
@@ -1274,7 +1365,7 @@ async function UpsertDmsSensorTypePlaceSensorTypeInfoForm() {
 }
 
 
-/* DMS 센서타입정보 현장적용 센서타입설정 입력값 유효검증 + body 반환 */
+/* DMS | 센서타입정보 현장적용 센서타입설정 입력값 유효검증 + body 반환 */
 function DmsSensorTypePlaceSensorTypeFormValidation() {
 	const id = $('#sensor-type-setting-id').val();
 	const group_order = $('#sensor-type-setting-group-order').val().trim();
@@ -1298,12 +1389,12 @@ function DmsSensorTypePlaceSensorTypeFormValidation() {
 }
 
 
-/* 센서타입정보 내의 현장 리스트 클릭 이벤트 및 요청 */
-async function SelectedSensorTypePlaceLi(target) {
-	selectListItem($('#sensor-type-place-ul'), target, 'li');
+/* DMS | 센서타입정보 내의 현장 리스트 클릭 이벤트 및 요청 */
+async function SelectedSensorTypePlaceLi(el) {
+	selectListItem($('#sensor-type-place-ul'), el, 'li');
 
 	const category = $('#category').val();
-	const placeId = target.dataset.id;
+	const placeId = $(el).data('id');
 	$('#sensor-type-setting-place-id').val(placeId);
 
 	try {
@@ -1314,53 +1405,58 @@ async function SelectedSensorTypePlaceLi(target) {
 	} catch (e) {
 		console.error(e);
 		showMessage("서버와의 연결에 문제가 발생했습니다. (네트워크 오류)");
+		ResetDmsForm('sensorTypeSetting', true);
 	}
 }
 
 
-/* DMS 센서타입정보의 선택 현장내의 센서타입 리스트 클릭 */
-function SelectedSensorTypePlaceSensorTypeLi(target) {
-	selectListItem($('#sensor-type-setting-ul'), target, 'li');
+/* DMS | 센서타입정보의 선택 현장내의 센서타입 리스트 클릭 */
+async function SelectedSensorTypePlaceSensorTypeLi(el) {
+	selectListItem($('#sensor-type-setting-ul'), el, 'li');
 	
-	const ds = target.dataset;
-	const d = {
-		id: ds.id,
-		name: ds.name,
-		group_order: ds.group_order,
-		min_gauge: ds.min_gauge,
-		max_gauge: ds.max_gauge,
-		criteria_val1: ds.criteria_val1 || '',
-		criteria_val2: ds.criteria_val2 || '',
-		criteria_val3: ds.criteria_val3 || '',
-		interval: ds.interval,
-		hidden: ds.hidden === 'true'? '1' : '0'
-	};
+	const id = $(el).data('id');
+	const type = 'DMSsensortypesetting';
 	
-	$('#sensor-type-setting-id').val(d.id);
-	$('#sensor-type-setting-name').val(d.name);
-	$('#sensor-type-setting-group-order').val(d.group_order);
-	$('#sensor-type-setting-min-gauge').val(d.min_gauge);
-	$('#sensor-type-setting-max-gauge').val(d.max_gauge);
-	$('#sensor-type-setting-criteria-val1').val(d.criteria_val1);
-	$('#sensor-type-setting-criteria-val2').val(d.criteria_val2);
-	$('#sensor-type-setting-criteria-val3').val(d.criteria_val3);
-	$('#sensor-type-setting-interval').val(d.interval);
-	$('#sensor-type-setting-hidden').val(d.hidden);
-}
-
-
-/* DMS 센서타입정보의 선택 현장내의 센서타입 리스트 초기화 */
-function UpdateElement(val, $elements) {
-	$elements.each(function () {
-		const $el = $(this);
-		if ($el.data('id') == val) {
-			SelectedSensorTypePlaceLi(this);
+	try {
+		const res = await PostRequest('find', { id, type });
+		
+		if (res.header.messageCd !== 200) {
+			showMessage(res.header.message);
+			ResetDmsForm('sensorTypeSetting');
+			return;
 		}
-	});
+		
+		const d = res.body;
+		const $stsId = $('#sensor-type-setting-id').val(d.id);
+		const $stsName = $('#sensor-type-setting-name').val(d.name);
+		const $stsGroupOrder = $('#sensor-type-setting-group-order').val(d.group_order);
+		const $stsMinGauge = $('#sensor-type-setting-min-gauge').val(d.min_gauge);
+		const $stsMaxGauge = $('#sensor-type-setting-max-gauge').val(d.max_gauge);
+		const $stsCriteriaVal1 = $('#sensor-type-setting-criteria-val1').val(d.criteria_val1);
+		const $stsCriteriaVal2 = $('#sensor-type-setting-criteria-val2').val(d.criteria_val2);
+		const $stsCriteriaVal3 = $('#sensor-type-setting-criteria-val3').val(d.criteria_val3);
+		const $stsInterval = $('#sensor-type-setting-interval').val(d.interval);
+		const $stsHidden = $('#sensor-type-setting-hidden').val(d.hidden);
+		
+		$stsId.val(d.id);
+		$stsName.val(d.name);
+		$stsGroupOrder.val(d.group_order);
+		$stsMinGauge.val(d.min_gauge);
+		$stsMaxGauge.val(d.max_gauge);
+		$stsCriteriaVal1.val(d.criteria_val1);
+		$stsCriteriaVal2.val(d.criteria_val2);
+		$stsCriteriaVal3.val(d.criteria_val3);
+		$stsInterval.val(d.interval);
+		$stsHidden.val(d.hidden ? '1' : '0');
+	} catch (e) {
+		console.error(e);
+		showMessage("서버와의 연결에 문제가 발생했습니다. (네트워크 오류)");
+		ResetDmsForm('sensorTypeSetting');
+	}
 }
 
 
-/* DMS 계산식정보 저장,수정,삭제 요청 */
+/* DMS | 계산식정보 저장,수정,삭제 요청 */
 async function UpsertDmsCalculationInfoForm(mode) {
 	const FORM_TYPE = 'calculation';
 	const result = DmsCalculationFormValidation(mode);
@@ -1373,18 +1469,18 @@ async function UpsertDmsCalculationInfoForm(mode) {
 	
 	try {
 		const res = await PostRequest(FORM_TYPE, result);
-		showMessage(res.header?.message || "처리에 실패했습니다.");
+		showMessage(res.header.message || "처리에 실패했습니다.");
 	} catch (e) {
 		console.error(e);
 		showMessage("서버와의 연결에 문제가 발생했습니다. (네트워크 오류)");
 	} finally {
-		ComboChangePostMethod();
+		await ComboChangePostMethod();
 		ResetDmsForm(FORM_TYPE);
 	}
 }
 
 
-/* DMS 계산식정보 입력값 유효검증 + body 반환 */
+/* DMS | 계산식정보 입력값 유효검증 + body 반환 */
 function DmsCalculationFormValidation(mode) {
 	const msg = '계산식 오류 [계산공식]을 확인해주세요.';
 	const id = $('#calculation-id').val();
@@ -1428,7 +1524,7 @@ function DmsCalculationFormValidation(mode) {
 }
 
 
-/* DMS 계산식정보 내의 계산식 리스트 클릭 */
+/* DMS | 계산식정보 내의 계산식 리스트 클릭 */
 function SelectedCalculationLi(target) {
 	selectListItem($('#calculation-ul'), target, 'li');
 	
@@ -1452,7 +1548,7 @@ function SelectedCalculationLi(target) {
 }
 
 
-/* DMS 계산식정보 공식 입력 버튼 활성화 여부 적용 */
+/* DMS | 계산식정보 공식 입력 버튼 활성화 여부 적용 */
 function FilterCalculationButton() {
 	formulaValues.length = 0;
 	$('#calculation-formula').val('');
@@ -1472,7 +1568,7 @@ function FilterCalculationButton() {
 }
 
 
-/* DMS 계산식정보 계산식 입력 버튼 이벤트 */
+/* DMS | 계산식정보 계산식 입력 버튼 */
 function AddCalculationButtonEvent(target) {
 	const value = $(target).data('value');
 	let text = $('#calculation-formula').val();
@@ -1489,7 +1585,7 @@ function AddCalculationButtonEvent(target) {
 }
 
 
-/* DMS 공용 정보 입력폼 초기화 */
+/* DMS  (공용) | 정보 입력폼 초기화 */
 function ResetDmsForm(title, selector = false) {
 	switch (title) {
 		case 'computer':
@@ -1574,7 +1670,6 @@ function ResetDmsForm(title, selector = false) {
 			setButtonState($('#checking-sensor-type-code'), '중복확인', 'btn-outline-warning');
 			break;
 		case 'sensorTypeSetting':
-			const placeId = $('#sensor-type-setting-place-id').val();
 			$('#sensor-type-setting-id').val('0');
 			$('#sensor-type-setting-place-id').val('0');
 			$('#sensor-type-setting-name').val('');
@@ -1590,8 +1685,6 @@ function ResetDmsForm(title, selector = false) {
 			if (selector) {
 				$('#sensor-type-setting-ul').html('<li>현장을 선택하세요</li>');
 				$('#sensor-type-place-ul li').removeClass('row-select');
-			} else {
-				UpdateElement(placeId, $('#sensor-type-place-ul li'));
 			}
 			break;
 		case 'calculation':
@@ -1635,8 +1728,8 @@ function ResetDmsForm(title, selector = false) {
 
 /******** 파일관리 > 이동 및 백업 *******************************************************************************************/
 
-/* 파일관리 이동및백업 저장,수정,삭제 요청 */
-async function UpsertMoveAndBackInfo(mode) {
+/* 이동및백업 | 저장,수정,삭제 요청 */
+async function UpsertMoveAndBackupInfo(mode) {
 	if(!LevelValidation()) return showMessage('현재 계정으로는 해당 기능을 사용할 수 없습니다.');
 	
 	const result = MoveAndBackFormValidation(mode);
@@ -1644,29 +1737,25 @@ async function UpsertMoveAndBackInfo(mode) {
 	if (typeof result === 'boolean') return;
 	
 	try {
-		const res = await PostRequest('filemove', result);
-
-		if (res.header?.messageCd === 200) {
-			showMessage(res.header.message);
-			loadContent($('#category').val());
-		} else {
-			showMessage(res.header.message);
-		}
+		const res = await PostRequest('moveandbackup', result);
+		showMessage(res.header.message);
 	} catch (e) {
 		console.error(e);
 		showMessage("서버와의 연결에 문제가 발생했습니다. (네트워크 오류)");
+	} finally {
+		await loadContent($('#category').val());
 	}
 }
 
 
-/* 파일관리 이동및백업 입력값 유효검증 + body 반환 */
+/* 이동및백업 | 입력값 유효검증 + body 반환 */
 function MoveAndBackFormValidation(mode) {
-    const id = $('#appendId').val();
-	const code = $('#appendCd').val();
+    const id = $('#append-id').val();
+    const name = $('#name').val().trim();
 	
 	if (!mode) {
-		if (id === '0') return false;
-		if (confirm(`[${code}]의 정보를 삭제하겠습니까?`)) return {id, mode};
+		if (id == '0') return false;
+		if (confirm(`[${name}]의 정보를 삭제하겠습니까?`)) return {id, mode};
 		return false;
 	}
 	
@@ -1678,29 +1767,28 @@ function MoveAndBackFormValidation(mode) {
     const getExt = (filename) => filename.split('.').pop().toLowerCase();
     const isValidExt = (filename) => allowedExt.includes(getExt(filename));
 
-    const name = $('#name').val().trim();
-    const pc_id = $('#pc_id').val();
-    const parsing_type_id = $('#parsing_type_id').val();
+    const pcId = $('#pc-id').val();
+    const parsingTypeId = $('#parsing-type-id').val();
     const run = $('#run').prop('checked');
 
-    const source_name = $('#source_name').val();
-    const target_name = $('#target_name').val();
-    const source_path = $('#source_path').val().trim();
-    const target_path = $('#target_path').val().trim();
+    const sourceName = $('#source-name').val();
+    const targetName = $('#target-name').val();
+    const sourcePath = $('#source-path').val().trim();
+    const targetPath = $('#target-path').val().trim();
 
-    const source_file = getFileName('#source_file', source_name);
-    const target_file = getFileName('#target_file', target_name);
+    const sourceFile = getFileName('#source-file', sourceName);
+    const targetFile = getFileName('#target-file', targetName);
 
-    if (!name || !source_path || !target_path) return '정보를 모두 입력하세요.';
-    if (!pc_id) return '[수집 PC]를 선택하세요.';
-    if (!parsing_type_id) return '[파싱 타입]을 선택하세요.';
-    if (!target_name && !target_file) return '[이동 파일]을 선택하세요. (txt, bat 파일)';
-    if (!isValidExt(target_file || target_name)) return '[이동 파일] 형식을 확인하세요. (txt, bat 파일)';
-    if (parsing_type_id === '8') {
-        if (!source_name && !source_file) return '[수집 파일]을 선택하세요. (txt, bat 파일)';
-        if (!isValidExt(source_file || source_name)) return '[수집 파일] 형식을 확인하세요. (txt, bat 파일)';
+    if (!name || !sourcePath || !targetPath) return '정보를 모두 입력하세요.';
+    if (!pcId) return '[수집 PC]를 선택하세요.';
+    if (!parsingTypeId) return '[파싱 타입]을 선택하세요.';
+    if (!targetName && !targetFile) return '[이동 파일]을 선택하세요. (txt, bat 파일)';
+    if (!isValidExt(targetFile || targetName)) return '[이동 파일] 형식을 확인하세요. (txt, bat 파일)';
+    if (parsingTypeId == '8') {
+        if (!sourceName && !sourceFile) return '[수집 파일]을 선택하세요. (txt, bat 파일)';
+        if (!isValidExt(sourceFile || sourceName)) return '[수집 파일] 형식을 확인하세요. (txt, bat 파일)';
     }
-    if (id !== '0') {
+    if (id != '0') {
         if (!confirm(`[${name}]의 정보를 변경하겠습니까?\n\n※신규 추가는 초기화 버튼 클릭 후 진행하세요.`))
             return false;
     }
@@ -1708,66 +1796,303 @@ function MoveAndBackFormValidation(mode) {
 	return {
         id,
         name,
-        pc_id,
-        source_name: source_file || source_name,
-        source_path,
-        target_name: target_file || target_name,
-        target_path,
+        pcId,
+        sourceName: sourceFile || sourceName,
+        sourcePath,
+        targetName: targetFile || targetName,
+        targetPath,
         run,
-        parsing_type_id,
+        parsingTypeId,
         mode
     };
 }
 
 
-/* 파일관리 이동및백업 테이블 행 클릭 */
-function SelectedMoveAndBackRow(target) {
-	selectListItem($('#collect-body'), target, 'tr');
+/* 이동및백업 | 테이블 필터 */
+function SelectedChangeFilterMoveAndBackTr() {
+    const pcVal = $('#select-pc').val();
+    const parsingVal = $('#select-parsing').val();
+    const $rows = $('#collect-table tbody tr');
 
-	const ds = target.dataset;
-	const d = {
-		id: ds.id,
-		name: ds.name,
-		pc_id: ds.pc_id,
-		source_name: ds.source_name || '',
-		source_path: ds.source_path,
-		target_name: ds.target_name || '',
-		target_path: ds.target_path,
-		run: ds.run === 'true',
-		parsing_type_id: ds.parsing_type_id
-	};
-	
-	$('#appendId').val(d.id);
-	$('#appendCd').val(d.name);
-	$('#name').val(d.name);
-	$('#run').prop('checked', d.run);
-	$('#pc_id').val(d.pc_id);
-	$('#source_name').val(d.source_name);
-	$('#source_path').val(d.source_path);
-	$('#target_name').val(d.target_name);
-	$('#target_path').val(d.target_path);
-	$('#parsing_type_id').val(d.parsing_type_id);
-	$('#source_file').val('');
-	$('#target_file').val('');
+    $rows.each(function () {
+        const $row = $(this);
+		const ds = $row.data();
+        const rowPc = ds.pcId;
+        const rowParsing = ds.parsingTypeId;
+        const matchPc = !pcVal || rowPc == pcVal;
+        const matchParsing = !parsingVal || rowParsing == parsingVal;
+        const shouldShow = matchPc && matchParsing;
+        $row.toggle(shouldShow);
+    });
+
+    const visibleCount = $rows.filter(':visible').length;
+    $('#total-count-row').text('Total ' + visibleCount);
 }
 
 
-/* 파일관리 공용 입력폼 초기화 */
+/* 이동및백업 | 테이블 행 클릭 */
+async function SelectedMoveAndBackRow(el) {
+	selectListItem($('#collect-body'), el, 'tr');
+	
+	const id = $(el).data('id');
+	const type = 'moveandbackup';
+	
+	try {
+		const res = await PostRequest('find', { id, type });
+		
+		if (res.header.messageCd !== 200) {
+			showMessage(res.header.message);
+			await loadContent($('#category').val());
+			return;
+		}
+		
+		const d = res.body;
+		const $appendId = $('#append-id');
+		const $name = $('#name');
+		const $pcId = $('#pc-id');
+		const $sourceName = $('#source-name');
+		const $sourceFile = $('#source-file');
+		const $sourcePath = $('#source-path');
+		const $targetName = $('#target-name');
+		const $targetFile = $('#target-file');
+		const $targetPath = $('#target-path');
+		const $parsingTypeId = $('#parsing-type-id');
+		const $run = $('#run');
+		
+		$appendId.val(d.id);
+		$name.val(d.name).prop('disabled', true);
+		$pcId.val(d.pc_id);
+		$sourceName.val(d.source_name);
+		$sourceFile.val('');
+		$sourcePath.val(d.source_path);
+		$targetName.val(d.target_name);
+		$targetFile.val('');
+		$targetPath.val(d.target_path);
+		$parsingTypeId.val(d.parsing_type_id);
+		$run.prop('checked', d.run);
+		
+		const $tds = $(el).find('td');
+		$tds.eq(3).text(d.last_dt);
+		$tds.eq(4).text(d.source_path);
+		$tds.eq(5).text(`${d.target_path}\\${d.target_name}`);
+	} catch (e) {
+		console.error(e);
+		showMessage("서버와의 연결에 문제가 발생했습니다. (네트워크 오류)");
+		await loadContent($('#category').val());
+	}
+}
+
+
+/* 파일관리 (공용) | 입력폼 초기화 */
 function ResetFileManageForm(title) {
 	switch (title) {
-		case 'moveAndBack':
-			$('#appendId').val('0');
-			$('#appendCd').val('');
-			$('#name').val('');
-			$('#pc_id').val('');
-			$('#source_name').val('');
-			$('#source_file').val('');
-			$('#source_path').val('');
-			$('#target_name').val('');
-			$('#target_file').val('');
-			$('#target_path').val('');
-			$('#parsing_type_id').val('');
+		case 'moveAndBackup':
+			$('#append-id').val('0');
+			$('#name').val('').prop('disabled', false);;
+			$('#pc-id').val('0');
+			$('#source-name').val('');
+			$('#source-file').val('');
+			$('#source-path').val('');
+			$('#target-name').val('');
+			$('#target-file').val('');
+			$('#target-path').val('');
+			$('#parsing-type-id').val('0');
 			$('#run').prop('checked', false);
+			$('#collect-body').find('tr').removeClass('row-select');
+			break;
+	}
+}
+
+
+/******** 데이터 자동화 > 데이터 삭제 ****************************************************************************************/
+
+
+/* 데이터 삭제 | 로거, 센서 콤보 조회 */
+async function SelectLoggerAndSensorCombo(el) {
+	const placeId = $(el).val();
+	const category = $('#category').val();
+	
+	try {
+		const $html = await PostRequest('combo', { category, placeId }, 'text');
+		const $parsed = $('<div>').html($html);
+		
+		$('#datadel-sensor-combo').html($parsed.find('#datadel-sensor-combo').html());
+		$('#datadel-logger-combo').html($parsed.find('#datadel-logger-combo').html());
+		$('#datadel-logger-combo').trigger('change');
+	} catch (e) {
+		console.error(e);
+		showMessage("서버와의 연결에 문제가 발생했습니다. (네트워크 오류)");
+		await loadContent($('#category').val());
+	}
+}
+
+
+/* 데이터 삭제 | 로거 변경 필터 센서 콤보 */
+function LoggerChangeFilterSensorCombo(el) {
+	const loggerId = $(el).val();
+	const $options = $('#datadel-sensor-combo option');
+	$('#datadel-sensor-combo').val('0');
+
+	$options.each((_, opt) => {
+		const $opt = $(opt);
+		const loggerIdAttr = $opt.data('logger-id');
+		const isDefault = !$opt.val() || $opt.val() == '0';
+		$opt.toggle(isDefault || loggerIdAttr == loggerId);
+	});
+}
+
+
+/* 데이터 삭제 | 저장,수정,삭제 요청 */
+async function UpsertDataDeleteInfo(mode) {
+	if(!LevelValidation()) return showMessage('현재 계정으로는 해당 기능을 사용할 수 없습니다.');
+	
+	const result = DataDeleteFormValidation(mode);
+	if (typeof result === 'string') return showMessage(result);
+	if (typeof result === 'boolean') return;
+
+	try {
+		const res = await PostRequest('datadelete', result);
+		showMessage(res.header.message);
+	} catch (e) {
+		console.error(e);
+		showMessage("서버와의 연결에 문제가 발생했습니다. (네트워크 오류)");
+	} finally {
+		await loadContent($('#category').val());
+	}
+}
+
+
+/* 데이터 삭제 | 입력값 유효검증 + body 반환 */
+function DataDeleteFormValidation(mode) {
+	const id = $('#append-id').val();
+	
+	if (!mode) {
+		if (id == '0') return false;
+		const placeName = $('#place option:selected').text();
+		const sensorCode = $('#datadel-sensor-combo option:selected').text();
+		if (confirm(`[${placeName}] 현장내 [${sensorCode}] 센서의 정보를 삭제하겠습니까?`)) return {id, mode};
+		return false;
+	}
+	
+	const placeId = $('#place').val();
+	const loggerId = $('#datadel-logger-combo').val();
+	const sensorId = $('#datadel-sensor-combo').val();
+	if (!placeId || !loggerId || !sensorId) return '[현장, 로거, 센서]를 모두 선택하세요.';
+		
+	const delPoint = $('#del-point').val();
+	const targetColumn = $('#target-column').val();
+	const startDt = $('#start-dt').val().replace('T', ' ');
+	const lastDt = startDt;
+	const run = $('#run').prop('checked');
+	
+	if (!delPoint || !targetColumn || !startDt)	return '정보를 모두 입력하세요.';
+	if (delPoint <= 0) return '삭제 기준값은 0보다 큰값만 사용할수 있습니다.';
+		
+	return {
+		id
+		,sensorId
+		,delPoint
+		,targetColumn
+		,startDt
+		,lastDt
+		,run
+		,mode
+	};
+}
+
+
+/* 데이터 삭제 | 테이블 필터 */
+function SelectedChangeFilterDataDeleteTr() {
+    const target = $('#select-target').val();
+    const $rows = $('#collect-table tbody tr');
+
+    $rows.each(function () {
+        const $row = $(this);
+        const rowTarget = $row.data('target');
+        const match = !target || rowTarget == target;
+        $row.toggle(match);
+    });
+
+    const visibleCount = $rows.filter(':visible').length;
+    $('#total-count-row').text('Total ' + visibleCount);
+}
+
+
+/* 데이터 삭제 | 테이블 행 클릭 */
+async function SelectedDataDeleteRow(el) {
+	selectListItem($('#collect-body'), el, 'tr');
+
+	const id = $(el).data('id');
+	const type = 'datadelete';
+
+	try {
+		const res = await PostRequest('find', { id, type });
+
+		if (res.header.messageCd !== 200) {
+			showMessage(res.header.message);
+			await loadContent($('#category').val());
+			return;
+		}
+
+		const d = res.body;
+		const $appendId = $('#append-id');
+		const $place = $('#place');
+		const $loggerCombo = $('#datadel-logger-combo');
+		const $sensorCombo = $('#datadel-sensor-combo');
+		const $targetColumn = $('#target-column');
+		const $startDt = $('#start-dt');
+		const $lastDt = $('#last-dt');
+		const $delPoint = $('#del-point');
+		const $run = $('#run');
+
+		$appendId.val(d.id);
+		$place.val(d.place_id).prop('disabled', true).trigger('change');
+		$loggerCombo.val(d.logger_id).prop('disabled', true).trigger('change');
+		setTimeout(() => { 
+			$sensorCombo.val(d.sensor_id).prop('disabled', true);
+		}, 100);
+		$targetColumn.val(d.target_column).prop('disabled', true);
+		$startDt.val(d.start_dt);
+		$lastDt.val(d.last_dt);
+		$delPoint.val(d.del_point);
+		$run.prop('checked', d.run);
+		
+		const $tds = $(el).find('td');
+		$tds.eq(4).text(d.del_point);
+		$tds.eq(6).text(d.start_dt);
+		$tds.eq(7).text(d.last_dt);
+	} catch (e) {
+		console.error(e);
+		showMessage("서버와의 연결에 문제가 발생했습니다. (네트워크 오류)");
+		await loadContent($('#category').val());
+	}
+}
+
+
+/* 데이터 자동화 (공용) | 입력폼 초기화 */
+function ResetDataAutomationForm(title) {
+	switch (title) {
+		case 'dataDelete':
+			const $appendId = $('#append-id');
+			const $place = $('#place');
+			const $loggerCombo = $('#datadel-logger-combo');
+			const $sensorCombo = $('#datadel-sensor-combo');
+			const $targetColumn = $('#target-column');
+			const $startDt = $('#start-dt');
+			const $lastDt = $('#last-dt');
+			const $delPoint = $('#del-point');
+			const $run = $('#run');
+			const defaultOption = '<option value="0" disabled selected>선택해주세요</option>';
+			
+			$appendId.val('0');
+			$place.val('0').prop('disabled', false);
+			$loggerCombo.html(defaultOption).prop('disabled', false);
+			$sensorCombo.html(defaultOption).prop('disabled', false);
+			$targetColumn.val('').prop('disabled', false);
+			$startDt.val('');
+			$lastDt.val('');
+			$delPoint.val('');
+			$run.prop('checked', false);
 			$('#collect-body').find('tr').removeClass('row-select');
 			break;
 	}

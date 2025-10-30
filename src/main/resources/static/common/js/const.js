@@ -11,14 +11,14 @@ const TableSet = {
 				SV: [
 					'measured_at',
 					'correction_val',
-					'displace_val'
+					'changed_val'
 				]
 			},
 			column: {
 				SV: {
 					measured_at: '측정일시',
 					correction_val: 'PVS',
-					displace_val: 'kine',
+					changed_val: 'kine',
 				}
 			}
 		},
@@ -26,16 +26,16 @@ const TableSet = {
 			key: {
 				SV: [
 					'measurement_date',
-					'max_displace_val',
-					'avg_displace_val',
+					'max_changed_val',
+					'avg_changed_val',
 					'record_count'
 				]
 			},
 			column: {
 				SV: {
 					measurement_date: '날짜',
-					max_displace_val: '최대(kine)',
-					avg_displace_val: '평균(kine)',
+					max_changed_val: '최대(kine)',
+					avg_changed_val: '평균(kine)',
 					record_count: '진동횟수'
 				}
 			}

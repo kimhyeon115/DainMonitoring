@@ -62,7 +62,11 @@ public class WebConfig implements WebMvcConfigurer {
 
         /* 사이트별 기본 페이지 & 패치 페이지 */
         "/*/",
-        "/*/patch"
+        "/*/patch",
+        
+        /* 기타서버 기능 */
+        "/actuator/**",
+        "/.well-known/**"
     );
 	
 	

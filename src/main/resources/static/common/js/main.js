@@ -65,7 +65,7 @@ function replaceLatestData(dataObj) {
 		['initialVal', 'displaceVal', 'changedVal', 'cumulativeVal']
 	);
     updateSensorTable('.sensor-event-tr', dataObj.latestEventData, 
-		['lastMeasuredAt', 'displaceVal', 'maxDisplaceVal', 'todayDataCount']
+		['lastMeasuredAt', 'changedVal', 'maxChangedVal', 'todayDataCount']
 	);
 	updateSensorTableTd('.sensor-hour-td', dataObj.latestCycleData, 'changedVal');
 

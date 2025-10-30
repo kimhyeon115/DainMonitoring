@@ -16,6 +16,7 @@
 	<!-- math.js 최신 CDN -->
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.9.0/math.min.js"></script>
 
+	<link href="/common/css/dain.css" rel="stylesheet" />
 	<link th:href="@{/{pageName}/css/setting.css(pageName=${pageName})}" rel="stylesheet" />
 </head>
 
@@ -60,15 +61,15 @@
 							<div class="dropdown-menu">
 								<a class="dropdown-item" href="#" data-category="dataIn">데이터 추가</a>
 								<a class="dropdown-item" href="#" data-category="dataUp">데이터 수정</a>
-								<a class="dropdown-item" href="#" data-category="dataDel">데이터 삭제</a>
+								<a class="dropdown-item" href="#" data-category="dataDelete">데이터 삭제</a>
 							</div>
 						</li>
 						<li class="nav-item dropdown">
 							<a class="nav-link dropdown-toggle" href="#navbar-third" data-bs-toggle="dropdown" data-bs-auto-close="outside" role="button" aria-expanded="false">
-								<span class="nav-link-title fw-bold">수집 스케줄러</span>
+								<span class="nav-link-title fw-bold">스케줄러</span>
 							</a>
 							<div class="dropdown-menu">
-								<a class="dropdown-item" href="#" data-category="photoMeter">광파계 수집</a>
+								<a class="dropdown-item" href="#" data-category="uploadMeasurements">계측 데이터 업로드</a>
 							</div>
 						</li>
 					</ul>
@@ -89,6 +90,14 @@
 	<input type="hidden" id="category" value="dmsSetting">
 	
 	<main class="page-wrapper"></main>
+	
+	<!-- 로딩 -->
+	<div id="loadingOverlay">
+		<div class="loading-content">
+			<img src="/common/images/loading.png" alt="Loading..." class="rotate" />
+			<p class="loading-text mt-3" style="color: #206bc4; font-weight: 500;">초기치 적용 중입니다...</p>
+		</div>
+	</div>
 	
 	<script type="text/javascript" th:src="@{/{pageName}/js/setting.js(pageName=${pageName})}"></script>
 </body>
