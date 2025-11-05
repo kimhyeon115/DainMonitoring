@@ -46,7 +46,10 @@ public class WebConfig implements WebMvcConfigurer {
         "/cheongpung/**", 
         "/ddm/**", 
         "/geunjeongjeon/**", 
-        "/jungdong/**"
+        "/jungdong/**",
+        
+        /* 개발 테스트 */
+        "/development/**"
     );
     
     

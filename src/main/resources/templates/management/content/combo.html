@@ -206,10 +206,10 @@
 <tbody id="sensor-initial-body">
 	<tr th:each="row : ${sensorInitial}">
 		<td th:text="initial"></td>
-		<td th:text="${row.raw_val}" class="val-color-blue"></td>
-		<td th:text="${row.displace_val}" class="val-color-red"></td>
-		<td th:text="${row.from_dt}"></td>
-		<td th:text="${row.to_dt}"></td>
+		<td th:text="${(row.rawVal % 1 == 0) ? row.rawVal.intValue() : row.rawVal}" class="val-color-blue"></td>
+		<td th:text="${(row.displaceVal % 1 == 0) ? row.displaceVal.intValue() : row.displaceVal}" class="val-color-red"></td>
+		<td th:text="${row.fromDt}"></td>
+		<td th:text="${row.toDt}"></td>
 	</tr>
 </tbody>
 
@@ -233,3 +233,51 @@
 		th:value="${sensor.id}" th:data-logger-id="${sensor.logger_id}">
 	</option>
 </select>
+
+
+<select id="pick-type" class="form-select">
+	<th:block th:each="type : ${applySensorTypeCombo}">
+		<option	th:text="${type.code}" 
+			th:value="${type.sensor_type_id}">
+		</option>
+	</th:block>
+	
+	<th:block th:if="${#lists.isEmpty(applySensorTypeCombo)}">
+		<option value="0" selected disabled>= 선택 =</option>
+	</th:block>
+</select>
+
+
+<select id="pick-sensor" class="form-select">
+	<option value="0" selected disabled>= 선택 =</option>
+	<th:block th:each="sensor : ${sensorCombo}">
+		<option	th:text="${sensor.code}" th:value="${sensor.id}"
+			th:data-type-id="${sensor.sensor_type_id}">
+		</option>
+	</th:block>
+</select>
+
+
+<tbody id="data-edit-body">
+	<th:block th:each="row : ${dataEdit}">
+		<tr th:data-id="${row.id}" th:data-place="${row.placeCode}" class="row-list-tr" 
+			ondblclick="SelectedDataEditRow(this)">
+			<td th:text="${row.placeName}"></td>
+			<td th:text="${row.sensorCode}"></td>
+			<td th:text="${row.sensorName}"></td>
+			<td th:text="${row.measuredAt}"></td>
+			<td th:text="${(row.rawVal % 1 == 0) ? row.rawVal.intValue() : row.rawVal}"></td>
+			<td th:text="${(row.correctionVal % 1 == 0) ? row.correctionVal.intValue() : row.correctionVal}" class="val-color-blue"></td>
+			<td th:text="${(row.angleVal % 1 == 0) ? row.angleVal.intValue() : row.angleVal}" class="val-color-green"></td>
+			<td th:text="${(row.displaceVal % 1 == 0) ? row.displaceVal.intValue() : row.displaceVal}" class="val-color-orange"></td>
+			<td th:text="${(row.initialVal % 1 == 0) ? row.initialVal.intValue() : row.initialVal}" class="val-color-gray"></td>
+			<td th:text="${(row.changedVal % 1 == 0) ? row.changedVal.intValue() : row.changedVal}" class="val-color-red"></td>
+		</tr>
+	</th:block>
+	
+	<th:block th:if="${#lists.isEmpty(dataEdit)}">
+		<tr>
+			<td colspan="10" class="text-center text-muted">조회된 데이터가 없습니다.</td>
+		</tr>
+	</th:block>
+</tbody>

@@ -59,6 +59,20 @@
 	text-shadow: 2px 2px 3px rgba(0, 0, 0, 0.2);
 }
 
+.company-new-version {
+	color: #5B62F4;
+	font-size: 15px;
+	font-weight: 700;
+	text-shadow: 2px 2px 3px rgba(0, 0, 0, 0.2);
+}
+
+.company-old-version {
+	color: #8592a3;
+	font-size: 15px;
+	font-weight: 700;
+	text-shadow: 2px 2px 3px rgba(0, 0, 0, 0.2);
+}
+
 .text-truncate {
 	color: #233446;
 	font-size: 16px;

@@ -1,0 +1,185 @@
+
+<!-- 데이터 자동화 >> dataRemove 컨텐츠 -->
+<div class="container-xl mt-3">
+	<div class="append-card">
+		<div class="append-inner">
+			<div class="append-guide p-4 rounded">
+				<h1>데이터 관리 > <small>수동 편집</small></h1>
+				<div class="append-input mb-3 mt-3">
+		  		    <strong>역할</strong>
+	  			</div>
+	  			<ul class="list-unstyled ml-3">
+		  		    <li>현장 및 로거내 선택한 <b class="val-color-blue">센서</b>의 DB에 업로드된</li>
+		  		    <li>데이터 중에서 각각의 값을 편집 기능</li>
+	  			</ul>
+				<div class="append-input mb-3 mt-3">
+					<strong>사용 팁</strong>
+				</div>
+				<ul class="list-unstyled ml-3">
+					<li>검색 조건을 입력후 데이터 조회</li>
+					<li>테이블에서 편집할 행을 더블 클릭</li>
+					<li>입력폼에서 데이터 편집 및 저장</li>
+					<li>삭제를 원하는 테이블 행들 모두 체크 및 삭제</li>
+				</ul>
+			</div>
+			<div id="AppendForm" class="append-form">
+				<div class="append-input mb-4">
+					<div class="append-input-inner">
+						<div class="form-label">현장 명칭</div>
+						<div class="input-row">
+							<input id="place-name" type="text" class="form-control" disabled>
+						</div>
+					</div>
+					<div class="append-input-inner">
+						<div class="form-label">로거 코드</div>
+						<div class="input-row">
+							<input id="logger-code" type="text" class="form-control" disabled>
+						</div>
+					</div>
+                </div>
+				<div class="append-input mb-4">
+					<div class="append-input-inner">
+						<div class="form-label">센서 명칭</div>
+						<div class="input-row">
+							<input id="sensor-name" type="text" class="form-control" disabled>
+						</div>
+					</div>
+					<div class="append-input-inner">
+						<div class="form-label">센서 코드</div>
+						<div class="input-row">
+							<input id="sensor-code" type="text" class="form-control" disabled>
+						</div>
+					</div>
+                </div>
+				<div class="path-section-bar"></div>
+				<div class="append-input mb-3">
+					<div class="append-input-inner">
+						<div class="form-label">측정 일시</div>
+						<input id="measured-at" type="datetime-local" step="1" class="form-control" disabled>
+					</div>
+					<div class="append-input-inner">
+						<div class="form-label">적용 초기값</div>
+						<div class="input-row">
+							<input id="sensor-initial" type="text" class="form-control val-color-gray" disabled>
+						</div>
+					</div>
+				</div>
+				<div class="path-section-bar"></div>
+				<div class="append-input mb-4">
+					<div class="append-input-inner">
+						<div class="form-label">보정값 (correction)</div>
+						<div class="input-row">
+							<input id="sensor-correction" type="text" class="form-control val-color-blue" 
+								oninput="validationDouble(this)" placeholder="* 필수 입력 *">
+						</div>
+					</div>
+					<div class="append-input-inner">
+						<div class="form-label">물리량 (displace)</div>
+						<div class="input-row">
+							<input id="sensor-displace" type="text" class="form-control val-color-orange"
+								oninput="validationDouble(this)" placeholder="* 필수 입력 *">
+						</div>
+					</div>					
+				</div>
+				<div class="append-input mb-4">
+					<div class="append-input-inner">
+						<div class="form-label">각도값 (angle)</div>
+						<div class="input-row">
+							<input id="sensor-angle" type="text" class="form-control val-color-green"
+								oninput="validationDouble(this)" placeholder="* 필수 입력 *">
+						</div>
+					</div>
+					<div class="append-input-inner">
+						<div class="form-label">변화량 (changed)</div>
+						<div class="input-row">
+							<input id="sensor-changed" type="text" class="form-control val-color-red"
+								oninput="validationDouble(this)" placeholder="* 필수 입력 *">
+						</div>
+					</div>
+				</div>
+				<div class="append-button-datadel">
+					<div>
+						<a class="btn btn-6 btn-outline-primary" onclick="ResetDataAutomationForm('dataEdit')">초기화</a>
+					</div>
+					<div>
+						<a class="btn btn-6 btn-outline-success mx-1" onclick="UpdateDataEditInfo(true)">저장</a>
+						<a class="btn btn-6 btn-outline-danger" onclick="UpdateDataEditInfo(false)">삭제</a>
+					</div>
+					<input type="hidden" id="append-id" value="0">
+					<input type="hidden" id="append-place-code" value="0">
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div th:fragment="dataEdit" class="container-xl mt-3">
+	<div class="card">
+		<div class="table-title-edit">
+			<div>
+				<div class="d-flex gap-3 align-items-center">
+					<div><strong>검색 기간 :</strong></div>
+					<input type="date" id="search-from" class="form-control">
+					<div><strong>~</strong></div>
+					<input type="date" id="search-to" class="form-control">
+				</div>
+			</div>
+			<div class="d-flex gap-3 align-items-center">
+				<div class="d-flex gap-3 align-items-center">
+					<div><strong>현장 명칭 :</strong></div>
+					<select class="form-select select-filter" id="pick-place" onchange="SelectTypeAndSensorCombo(this)">
+						<option value="0" selected disabled>= 선택 =</option>
+						<option th:each="place : ${selectPlaceCombo}" 
+							th:value="${place.id}" 
+							th:text="${place.short_name}"
+							th:data-code="${place.code}"></option>
+	                </select>
+				</div>
+				<div class="d-flex gap-3 align-items-center">
+					<div><strong>센서 타입 :</strong></div>
+					<select class="form-select select-filter" id="pick-type" onchange="TypeChangeFilterSensorCombo(this)">
+						<option value="0" selected disabled>= 선택 =</option>
+	                </select>
+				</div>
+				<div class="d-flex gap-3 align-items-center">
+					<div><strong>센서 코드 :</strong></div>
+					<select class="form-select select-filter" id="pick-sensor">
+						<option value="0" selected disabled>= 선택 =</option>
+	                </select>
+				</div>
+				<div>
+					<a class="btn btn-6 btn-outline-primary" onclick="SelectDataEditTable()">조회</a>
+				</div>
+			</div>
+		</div>
+		<div class="table-responsive">
+			<table class="table card-table table-vcenter text-nowrap datatable" id="collect-table">
+				<thead>
+					<tr>
+						<th style="width: 12%">현장 명칭</th>
+						<th style="width: 10%">센서 코드</th>
+						<th style="width: 20%">센서 명칭</th>
+						<th style="width: 14%">측정 일시</th>
+						<th style="width: 8%">측정값<br>(raw)</th>
+						<th style="width: 8%">보정값<br>(correction)</th>
+						<th style="width: 7%">각도<br>(angle)</th>
+						<th style="width: 7%">물리량<br>(displace)</th>
+						<th style="width: 7%">초기값<br>(initial)</th>
+						<th style="width: 7%">변화량<br>(changed)</th>
+					</tr>
+				</thead>
+				<tbody id="data-edit-body">
+					<tr th:if="${#lists.isEmpty(selectSensorData)}">
+						<td colspan="10" class="text-center text-muted">검색 조건을 입력한 후 데이터를 조회하세요.</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+		<div class="card-footer">
+			<div class="row g-2 justify-content-center justify-content-sm-between">
+				<div class="col-auto d-flex align-items-center"></div>
+	        </div>
+		</div>
+	</div>
+	<div class="bottom-blank"></div>
+</div>

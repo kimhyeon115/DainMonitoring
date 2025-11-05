@@ -15,6 +15,7 @@ public class Management {
 	private String placeCode;
 	private boolean run;
 	private boolean open;
+	private boolean oldVersion;
 	private boolean used;
 	private String url;
 	private String placeShortName;

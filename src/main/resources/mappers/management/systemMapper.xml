@@ -165,6 +165,7 @@
 			id
 			,logger_id
 			,code
+			,sensor_type_id
 		FROM dain_sensor 
 		WHERE 
 			place_id = #{placeId}
@@ -628,7 +629,7 @@
 	</select>
 	
 	
-	<select id="selectSensorInitial" resultType="Map">
+	<select id="selectSensorInitial" resultType="InitialBody">
 		SELECT
 			ROUND(raw_val, 3) AS raw_val
 			,ROUND(displace_val, 3) AS displace_val
@@ -1026,6 +1027,185 @@
 	    WHERE 
 	    	measured_at >= #{params.from_dt}
 	    	AND sensor_id = #{params.sensor_id}
+	</update>
+	
+	
+	<select id="selectApplySensorTypeCombo" resultType="Map">
+		SELECT 
+			ds.sensor_type_id
+			,dst.code 
+		FROM dain_sensor ds
+		JOIN dain_sensor_type dst 
+			ON dst.id = ds.sensor_type_id 
+		WHERE 
+			place_id = #{placeId}
+			AND ds.used = true
+		GROUP BY 
+			sensor_type_id;
+	</select>
+	
+	
+	<select id="selectDataEdit" resultType="DataEditBoby">
+		SELECT 
+			dd.id
+			,dp.code AS place_code
+			,dp.short_name AS place_name
+			,ds.code AS sensor_code
+			,ds.name AS sensor_name
+			,DATE_FORMAT(dd.measured_at, '%Y-%m-%d %H:%i:%s') AS measured_at
+			,ROUND(dd.raw_val, 3) AS raw_val
+			,ROUND(dd.correction_val, 3) AS correction_val
+			,ROUND(dd.angle_val, 3) AS angle_val
+			,ROUND(dd.displace_val, 3) AS displace_val
+			,ROUND(dd.initial_val, 3) AS initial_val
+			,ROUND(dd.changed_val, 3) AS changed_val
+		FROM data_${params.placeCode} dd
+		JOIN dain_sensor ds
+			ON ds.id = dd.sensor_id
+		JOIN dain_logger dl 
+			ON dl.id = dd.logger_id 
+		JOIN dain_place dp 
+			ON dp.id = dl.place_id 
+		WHERE
+			dd.measured_at >= #{params.searchFrom}
+			AND dd.measured_at <![CDATA[<=]]> #{params.searchTo}
+			AND dd.sensor_id = #{params.sensorId}
+			AND dd.used = true
+		ORDER BY 
+			dd.measured_at DESC
+	</select>
+	
+	
+	<select id="selectSingleDataEdit" resultType="Map">
+		SELECT 
+			dd.id
+			,dp.code AS place_code
+			,dp.short_name AS place_name
+			,dl.code AS logger_code
+			,ds.name AS sensor_name
+			,ds.code AS sensor_code
+			,DATE_FORMAT(dd.measured_at, '%Y-%m-%d %H:%i:%s') AS measured_at
+			,ROUND(dd.raw_val, 3) AS raw_val
+			,ROUND(dd.correction_val, 3) AS correction_val
+			,ROUND(dd.angle_val, 3) AS angle_val
+			,ROUND(dd.displace_val, 3) AS displace_val
+			,ROUND(dd.initial_val, 3) AS initial_val
+			,ROUND(dd.changed_val, 3) AS changed_val
+		FROM data_${params.place} dd
+		JOIN dain_sensor ds
+			ON ds.id = dd.sensor_id
+		JOIN dain_logger dl 
+			ON dl.id = dd.logger_id 
+		JOIN dain_place dp 
+			ON dp.id = dl.place_id 
+		WHERE
+			dd.id = #{params.id}
+	</select>
+	
+	
+	<update id="updateDataEdit">
+		UPDATE 
+			data_${params.place} 
+		SET 
+			correction_val = #{params.correction}
+			,angle_val = #{params.angle}
+			,displace_val = #{params.displace}
+			,changed_val = #{params.changed}
+		WHERE 
+			id = #{params.id}
+	</update>
+	
+	
+	<update id="removeDataEdit">
+		UPDATE 
+			data_${params.place} 
+		SET 
+			used = false 
+		WHERE 
+			id = #{params.id}
+	</update>
+	
+	
+	<select id="selectLogger" resultType="Map">
+		SELECT 
+			dl.id
+			,dp.short_name AS placeName
+			,dl.code AS loggerCode
+			,dc.name AS pcName
+			,dl.file_path AS filePath
+			,DATE_FORMAT(dl.uploaded_at, '%Y-%m-%d %H:%i:%s') AS uploadedAt
+			,dl.run
+		FROM dain_logger dl 
+		JOIN dain_place dp 
+			ON dp.id = dl.place_id 
+		JOIN dain_computer dc 
+			ON dc.id = dl.computer_id 
+		WHERE 
+			dl.used = true 
+			AND dp.old_version = false 
+			AND dp.used = true
+		ORDER BY 
+			dp.short_name ASC, dl.code ASC
+	</select>
+	
+	
+	<select id="selectUploadLog" resultType="Map">
+		SELECT 
+			DATE_FORMAT(sul.run_time, '%Y-%m-%d %H:%i:%s') AS runTime
+			,dp.short_name AS placeName
+			,dl.code AS loggerCode
+			,sul.row_count AS rowCount
+			,sul.action
+			,sul.log_msg AS logMsg
+		FROM system_upload_log sul 
+		JOIN dain_logger dl 
+			ON dl.id = sul.logger_id 
+		JOIN dain_place dp 
+			ON dp.id = dl.place_id 
+		WHERE 
+			DATE(sul.run_time) = CURDATE() 
+		ORDER BY 
+			sul.run_time DESC, dl.code ASC
+	</select>
+	
+	
+	<select id="selectExecutionCalculationCount" resultType="int">
+		SELECT 
+			COUNT(*) 
+		FROM data_${params.place_code} 
+		WHERE 
+			measured_at >= #{params.from_dt}
+			<if test="params.to_dt != null">
+				AND measured_at <![CDATA[<=]]> #{params.to_dt}
+			</if>
+			AND sensor_id = #{params.sensor_id}
+	</select>
+	
+	
+	<update id="updateSensorNewCalculation">
+		UPDATE data_${params.place_code} 
+		SET 
+			<if test="params.execMap.containsKey('correction')">
+			    correction_val = ROUND(${params.execMap['correction'].calculation}, 3),
+			</if>
+			<if test="params.execMap.containsKey('angle')">
+			    angle_val = ROUND(${params.execMap['angle'].calculation},3),
+			</if>
+			<if test="params.execMap.containsKey('displace')">
+			    displace_val = ROUND(${params.execMap['displace'].calculation},3),
+			</if>
+			changed_val = displace_val - initial_val
+		WHERE 
+			measured_at >= #{params.from_dt}
+			<if test="params.to_dt != null">
+				AND measured_at <![CDATA[<=]]> #{params.to_dt}
+			</if>
+			AND sensor_id = #{params.sensor_id}
+	</update>
+	
+	
+	<update id="updateLoggerStatus">
+		UPDATE dain_logger SET run = #{params.run} WHERE id = #{params.loggerId}
 	</update>
 
 </mapper>

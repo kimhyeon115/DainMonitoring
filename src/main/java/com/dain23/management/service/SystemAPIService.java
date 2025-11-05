@@ -3,6 +3,7 @@ package com.dain23.management.service;
 import java.util.Map;
 
 import com.dain23.common.model.ResponseData;
+import com.dain23.management.model.TransactionPlace;
 
 public interface SystemAPIService {
 
@@ -32,10 +33,16 @@ public interface SystemAPIService {
 	
 	ResponseData upsertMoveAndBackup(Map<String, Object> params);
 	
+	Map<String, Object> selectComboOfDataEdit(Map<String, Object> params);
+	
 	Map<String, Object> selectComboOfDataDel(Map<String, Object> params);
+	
+	ResponseData updateDataEdit(Map<String, Object> params);
 	
 	ResponseData upsertDataDelete(Map<String, Object> params);
 	
 	ResponseData selectTargetDetail(Map<String, Object> params);
+	
+	ResponseData updateLoggerStatus(Map<String, Object> params);
 	
 }

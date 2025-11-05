@@ -12,6 +12,7 @@ const groupResetMap = {
 	sensorType: ['sensorType', 'sensorTypeSetting'],
 	calculation: ['calculation']
 };
+let uploadTimer = null;
 
 
 /******** 공용 및 시스템 전용 함수 ************************************************************************************************/
@@ -76,7 +77,8 @@ function showMessage(msg) {
 
 
 /* 공용 | 화면 로딩 */
-function loadingScreen(confirm){
+function loadingScreen(confirm, message = ''){
+	$('#loading-message').text(message);
 	if (confirm) $('#loadingOverlay').show();
 	else $('#loadingOverlay').hide();
 }
@@ -218,7 +220,7 @@ function ToopTipShowMessage() {
 /* 현재 화면 컨텐츠 조회 */
 async function loadContent(category, triggerElement) {
 	
-	const allowed = ["dmsSetting", "moveAndBackup", "dataDelete"];
+	const allowed = ["uploadMeasurements", "dmsSetting", "moveAndBackup", "dataEdit", "dataDelete"];
 	if (!allowed.includes(category)) {
 		showMessage("개발 진행중입니다.");
 		const prevCategory = $('#category').val();
@@ -239,10 +241,16 @@ async function loadContent(category, triggerElement) {
 		}
 		
 		setDefaultInputSettings();
-		ToopTipShowMessage();
+		ToopTipShowMessage();		
 		
-        if (category === 'dmsSetting') {
+        if (category == 'dmsSetting') {
 			FilterCalculationButton();
+		}
+		
+		if (category == 'dataEdit') {
+			$('#search-to').val(getTodayDate());
+			$('#search-from').val(getTodayDate());
+			$('select').css('width', '150px');
 		}
 		
 	} catch (error) {
@@ -262,6 +270,50 @@ function LevelValidation() {
 
 	if (!restricted[category]) return true;
 	return restricted[category].includes(userLevel);
+}
+
+
+/******** 스케줄러 > 계측 업로드 ************************************************************************************************/
+
+
+/* 계측 업로드 | 리프레시 */
+function manageAutoReload(category) {
+	clearInterval(uploadTimer);
+
+	if (category === 'uploadMeasurements') {
+		uploadTimer = setInterval(() => {
+			const current = $('#category').val();
+			if (current === 'uploadMeasurements') {
+				console.log(`[Auto Reload] ${new Date().toLocaleString()}`);
+				loadContent('uploadMeasurements');
+			} else {
+				clearInterval(uploadTimer);
+				uploadTimer = null;
+			}
+		}, 300000);
+	}
+}
+
+
+/* 계측 업로드 | 실행 여부 변경 */
+async function ChangeUploadRunStatus(el) {
+	const d = $(el).data();
+	const status = d.run;
+	const loggerId = d.id;
+	const loggerCode = d.logger;
+	const msg = `[${loggerCode}] 로거의 데이터 업로드를\n${status ? '[정지]' : '[실행]으'}로 변경하시겠습니까?`;
+	const run = !status;
+
+	if (!confirm(msg)) return;
+	
+	try {
+        const res = await PostRequest('loggerstatus', { loggerId, run });
+        showMessage(res.header.message || "처리에 실패했습니다.");
+		loadContent($('#category').val());
+    } catch (e) {
+        console.error(e);
+        showMessage("서버와의 연결에 문제가 발생했습니다. (네트워크 오류)");
+    }
 }
 
 
@@ -948,8 +1000,10 @@ async function SelectedSensorLi(el) {
 async function InsertDmsSensorApplyCalculation() {
 	const result = DmsSensorApplyCalculationFormValidation();
 	if (typeof result === 'string') return showMessage(result);
-	
+	console.log(result);
 	try {
+		loadingScreen(true, '기간 내 데이터 계산식 적용 중...');
+		await new Promise(resolve => setTimeout(resolve, 1000))
 		const res = await PostRequest('applycalculation', result);
 		showMessage(res.header?.message || "처리에 실패했습니다.");
 					
@@ -968,42 +1022,109 @@ async function InsertDmsSensorApplyCalculation() {
 		showMessage("서버와의 연결에 문제가 발생했습니다. (네트워크 오류)");
 	} finally {
 		ResetDmsForm('applyCalculation');
+		loadingScreen(false);
 	}
 }
 
 
 /* DMS | 센서정보 적용 계산식 입력값 유효검증 + body 반환 */
 function DmsSensorApplyCalculationFormValidation() {
-	const sensor_id = $('#sensor-id').val();
-	const target = $('#sensor-target-column').val();
-	const calculation_item_id = $('#sensor-apply-calculation option:selected').data('id') || '';
-	const from_dt = $('#sensor-calculation-start').val().replace('T', ' ');
-	const to_dt = $('#sensor-calculation-end').val()?.replace('T', ' ') || null;
-	
-	if (sensor_id === '0') return '[현장]과 [센서]를 먼저 선택하세요.';
-	if (!target || !calculation_item_id) return '[적용항목, 적용공식]을 모두 선택하세요.';
-	if (!from_dt) return '[적용 시작일시]를 선택하세요.';
-	
-	const param = [];			
-	for (const ch of ['a','b','c','d','e']) {
-	    const $paramEl = $(`#param-${ch}-val`);
-	    if ($paramEl.prop('disabled')) continue;
+	const sensorId = $('#sensor-id').val();
+	const placeCode = $('#sensor-place-code').val();
+    const target = $('#sensor-target-column').val();
+    const calculationItemId = $('#sensor-apply-calculation option:selected').data('id') || '';
 
-	    const val = $paramEl.val().trim();
-	    if (val === '') return '[대입값]을 모두 입력하세요.';
+    const normalizeDate = v => v ? v.replace('T', ' ') : null;
+    const fromDt = normalizeDate($('#sensor-calculation-start').val());
+    const toDt = normalizeDate($('#sensor-calculation-end').val());
+		
+	if (sensorId === '0') return '[현장]과 [센서]를 먼저 선택하세요.';
+    if (!target || !calculationItemId) return '[적용항목, 적용공식]을 모두 선택하세요.';
+    if (!fromDt) return '[적용 시작일시]를 선택하세요.';	
+	
+	const param = ['a','b','c','d','e'].reduce((acc, ch) => {
+        const $input = $(`#param-${ch}-val`);
+        if ($input.prop('disabled')) return acc;
 
-	    param.push({
-	        param_key: ch.toUpperCase(),
-	        param_value: val
-	    });
+        const val = $input.val().trim();
+        if (!val) throw '[대입값]을 모두 입력하세요.';
+
+        acc.push({ param_key: ch.toUpperCase(), param_value: val });
+        return acc;
+    }, []);
+	
+	const fromTime = new Date(fromDt).getTime();
+    const toTime = toDt ? new Date(toDt).getTime() : Date.now();
+    const diffMonths = (toTime - fromTime) / (1000 * 60 * 60 * 24 * 30.44);
+
+	if (toTime < fromTime) {
+	    return '[적용 종료일시]는 [적용 시작일시]보다 이후여야 합니다.';
 	}
 	
+	if (diffMonths > 6) {
+	    if (to_dt == null) {
+	        return '[적용 종료일시] 미기입 시 [적용 시작일시]는\n' +
+	               '현재 시점으로부터 6개월 이내만 설정할 수 있습니다.\n\n' +
+	               '※기간이 길 경우 여러 건으로 나누어 등록하세요.';
+	    } else {
+	        return '[적용 기간]은 최대 6개월까지만 설정할 수 있습니다.\n\n' +
+	               '※기간이 길 경우 여러 건으로 나누어 등록하세요.';
+	    }
+	}
+	
+	const applyObj = $('#apply-calculation-body').find('tr').map((_, tr) => {
+        const $td = $(tr).find('td');
+        const toText = $td.eq(3).text().trim();
+        return {
+            target_column: $td.eq(0).text().trim(),
+            calculation: $td.eq(1).text().trim(),
+            from_dt: $td.eq(2).text().trim(),
+            to_dt: toText === '무기한' ? null : toText,
+            id: $td.eq(4).text().trim(),
+        };
+    }).get();
+
+	applyObj.push({
+        target_column: target,
+        calculation: $('#final-calculation').val().trim(),
+        from_dt: fromDt,
+        to_dt: toDt,
+        id: '0'
+    });
+
+    const execution = applyObj.filter(o =>
+        fromDt >= o.from_dt && (!o.to_dt || fromDt <= o.to_dt)
+    );
+	
+	const keywords = ['raw', 'correction', 'angle', 'displace', 'initial'];
+	const mathMap = {
+	    'sin': 'SIN',
+	    'pi': 'PI()'
+	};
+	execution.forEach(o => {
+	    keywords.forEach(k => {
+	        const regex = new RegExp(`\\b${k}\\b`, 'g');
+	        o.calculation = o.calculation.replace(regex, `${k}_val`);
+	    });
+
+	    Object.keys(mathMap).forEach(k => {
+	        const regex = new RegExp(`\\b${k}\\b`, 'g');
+	        o.calculation = o.calculation.replace(regex, mathMap[k]);
+	    });
+	});
+	
+	const execMap = Object.fromEntries(
+	  execution.map(e => [e.target_column, e])
+	);
+	
 	return {
-		sensor_id,
-		calculation_item_id,
-		from_dt,
-		to_dt,
-		param
+		place_code: placeCode,
+		sensor_id: sensorId,
+        calculation_item_id: calculationItemId,
+        from_dt: fromDt,
+        to_dt: toDt,
+        param,
+        execMap
 	};
 }
 
@@ -1099,7 +1220,8 @@ async function InsertDmsSensorInitial() {
 	if (typeof result === 'string') return showMessage(result);
 	
 	try {
-		loadingScreen(true);
+		loadingScreen(true, '기간 내 데이터 초기치 적용 중...');
+		await new Promise(resolve => setTimeout(resolve, 1000))
 		const res = await PostRequest('sensorinitial', result);
 		showMessage(res.header.message || "처리에 실패했습니다.");
 					
@@ -1904,10 +2026,216 @@ function ResetFileManageForm(title) {
 }
 
 
-/******** 데이터 자동화 > 데이터 삭제 ****************************************************************************************/
+/******** 데이터 관리 > 수동 편집 ****************************************************************************************/
 
 
-/* 데이터 삭제 | 로거, 센서 콤보 조회 */
+/* 수동 편집 | 수정,삭제 요청 */
+async function UpdateDataEditInfo(mode) {
+	if(!LevelValidation()) return showMessage('현재 계정으로는 해당 기능을 사용할 수 없습니다.');
+	
+	const result = DataEditFormValidation(mode);
+	if (typeof result === 'string') return showMessage(result);
+	if (typeof result === 'boolean') return;
+
+	try {
+		const res = await PostRequest('dataedit', result);
+		await SelectDataEditTable();
+		showMessage(res.header.message);
+	} catch (e) {
+		console.error(e);
+		showMessage("서버와의 연결에 문제가 발생했습니다. (네트워크 오류)");
+	} finally {
+		ResetDataAutomationForm('dataEdit');
+	}
+}
+
+
+/* 수동 편집 | 수정, 삭제 입력값 유효검증 + body 반환 */
+function DataEditFormValidation(mode) {
+	const category = $('#category').val();
+	const id = $('#append-id').val();
+	const place = $('#append-place-code').val();
+	
+	if (!mode) {
+		if (id == '0' || place == '0') return false;
+		const dt = $('#measured-at').val().replace('T', ' ');
+		const code = $('#sensor-code').val().trim();
+		if (confirm(`[${dt}]일시 [${code}]의 정보를 삭제하겠습니까?`)) return {id, place, mode};
+		return false;
+	}
+	
+	const correction = $('#sensor-correction').val();
+	const angle = $('#sensor-angle').val();
+	const displace = $('#sensor-displace').val();
+	const changed = $('#sensor-changed').val();
+	
+	if (id == '0' || place == '0') 
+		return '[데이터]를 선택하세요.\n\n※데이터를 조회하여 테이블에서 더블 클릭하세요.';
+	if (!correction || !angle || !displace || !changed) 
+		return '정보를 모두 입력하세요.';
+	
+	return {
+		category
+		,id
+		,place
+		,correction
+		,angle
+		,displace
+		,changed
+		,mode
+	};
+}
+
+
+/* 수동 편집 | 타입, 센서 콤보 조회 */
+async function SelectTypeAndSensorCombo(el) {
+	const placeId = $(el).val();
+	const category = $('#category').val();
+	
+	try {
+		const $html = await PostRequest('combo', { category, placeId }, 'text');
+		const $parsed = $('<div>').html($html);
+		
+		$('#pick-sensor').html($parsed.find('#pick-sensor').html());
+		$('#pick-type').html($parsed.find('#pick-type').html());
+		$('#pick-type').trigger('change');
+	} catch (e) {
+		console.error(e);
+		showMessage("서버와의 연결에 문제가 발생했습니다. (네트워크 오류)");
+		await loadContent($('#category').val());
+	}
+}
+
+
+/* 수동 편집 | 타입 변경 필터 센서 콤보 */
+function TypeChangeFilterSensorCombo(el) {
+	const sensorTypeId = $(el).val();
+	const $options = $('#pick-sensor option');
+	$('#pick-sensor').val('0');
+
+	$options.each((_, opt) => {
+		const $opt = $(opt);
+		const typeIdAttr = $opt.data('type-id');
+		const isDefault = !$opt.val() || $opt.val() == '0';
+		$opt.toggle(isDefault || typeIdAttr == sensorTypeId);
+	});
+}
+
+
+/* 수동 편집 | 데이터 조회 요청 */
+async function SelectDataEditTable() {
+	const result = DataEditTableValidation();
+	if (typeof result === 'string') return showMessage(result);
+
+	try {
+		loadingScreen(true);
+		const $html = await PostRequest('combo', result, 'text');
+		const $parsed = $('<table>').html($html);
+		$('#data-edit-body').html($parsed.find('#data-edit-body').html());
+	} catch (e) {
+		console.error(e);
+		showMessage("서버와의 연결에 문제가 발생했습니다. (네트워크 오류)");
+		await loadContent($('#category').val());
+	} finally {
+		loadingScreen(false);
+	}
+}
+
+
+/* 수동 편집 | 조회 입력값 유효검증 + body 반환 */
+function DataEditTableValidation() {
+	const category = $('#category').val();
+	const searchFrom = $('#search-from').val();
+	const searchTo = $('#search-to').val();
+	const placeId = $('#pick-place').val();
+	const placeCode = $('#pick-place option:selected').attr('data-code');
+	const typeId = $('#pick-type').val();
+	const sensorId = $('#pick-sensor').val();
+	
+	if (!searchFrom || !searchTo) 
+		return '[검색 기간]을 선택하세요.';
+	if (new Date(searchFrom) > new Date(searchTo)) 
+		return '[검색 기간] 시작일은 종료일보다 이후일 수 없습니다.';
+	if (!placeId || !typeId || !sensorId) 
+		return '[현장, 타입, 센서]를 모두 선택하세요.';
+	const diffDays = (new Date(searchTo) - new Date(searchFrom)) / (1000 * 60 * 60 * 24);
+	if (diffDays > 3) return '[검색 기간]은 최대 3일 이내로만 설정할 수 있습니다.';
+	
+	return {
+		category
+		,searchFrom
+		,searchTo
+		,placeId
+		,placeCode
+		,typeId
+		,sensorId
+	};
+}
+
+
+/* 수동 편집 | 테이블 행 클릭 */
+async function SelectedDataEditRow(el) {
+	selectListItem($('#data-edit-body'), el, 'tr');
+
+	const id = $(el).data('id');
+	const place = $(el).data('place');
+	const type = 'dataedit';
+
+	try {
+		const res = await PostRequest('find', { id, place, type });
+
+		if (res.header.messageCd !== 200) {
+			showMessage(res.header.message);
+			await loadContent($('#category').val());
+			return;
+		}
+
+		const d = res.body;
+		const $appendId = $('#append-id');
+		const $appendPlaceCode = $('#append-place-code');
+		const $placeName = $('#place-name');
+		const $loggerCode = $('#logger-code');
+		const $sensorName = $('#sensor-name');
+		const $sensorCode = $('#sensor-code');
+		const $measuredAt = $('#measured-at');
+		const $sensorCorrection = $('#sensor-correction');
+		const $sensorAngle = $('#sensor-angle');
+		const $sensorDisplace = $('#sensor-displace');
+		const $sensorInitial = $('#sensor-initial');
+		const $sensorChanged = $('#sensor-changed');
+
+		$appendId.val(d.id);
+		$appendPlaceCode.val(d.place_code);
+		$placeName.val(d.place_name);
+		$loggerCode.val(d.logger_code);
+		$sensorName.val(d.sensor_name);
+		$sensorCode.val(d.sensor_code);
+		$measuredAt.val(d.measured_at);
+		$sensorCorrection.val(d.correction_val);
+		$sensorAngle.val(d.angle_val);
+		$sensorDisplace.val(d.displace_val);
+		$sensorInitial.val(d.initial_val);
+		$sensorChanged.val(d.changed_val);
+		
+		const $tds = $(el).find('td');
+		$tds.eq(4).text(d.raw_val);
+		$tds.eq(5).text(d.correction_val);
+		$tds.eq(6).text(d.angle_val);
+		$tds.eq(7).text(d.displace_val);
+		$tds.eq(8).text(d.initial_val);
+		$tds.eq(9).text(d.changed_val);
+	} catch (e) {
+		console.error(e);
+		showMessage("서버와의 연결에 문제가 발생했습니다. (네트워크 오류)");
+		await loadContent($('#category').val());
+	}
+}
+
+
+/******** 데이터 관리 > 자동 삭제 ****************************************************************************************/
+
+
+/* 자동 삭제 | 로거, 센서 콤보 조회 */
 async function SelectLoggerAndSensorCombo(el) {
 	const placeId = $(el).val();
 	const category = $('#category').val();
@@ -1927,7 +2255,7 @@ async function SelectLoggerAndSensorCombo(el) {
 }
 
 
-/* 데이터 삭제 | 로거 변경 필터 센서 콤보 */
+/* 자동 삭제 | 로거 변경 필터 센서 콤보 */
 function LoggerChangeFilterSensorCombo(el) {
 	const loggerId = $(el).val();
 	const $options = $('#datadel-sensor-combo option');
@@ -1942,7 +2270,7 @@ function LoggerChangeFilterSensorCombo(el) {
 }
 
 
-/* 데이터 삭제 | 저장,수정,삭제 요청 */
+/* 자동 삭제 | 저장,수정,삭제 요청 */
 async function UpsertDataDeleteInfo(mode) {
 	if(!LevelValidation()) return showMessage('현재 계정으로는 해당 기능을 사용할 수 없습니다.');
 	
@@ -1962,7 +2290,7 @@ async function UpsertDataDeleteInfo(mode) {
 }
 
 
-/* 데이터 삭제 | 입력값 유효검증 + body 반환 */
+/* 자동 삭제 | 입력값 유효검증 + body 반환 */
 function DataDeleteFormValidation(mode) {
 	const id = $('#append-id').val();
 	
@@ -2001,7 +2329,7 @@ function DataDeleteFormValidation(mode) {
 }
 
 
-/* 데이터 삭제 | 테이블 필터 */
+/* 자동 삭제 | 테이블 필터 */
 function SelectedChangeFilterDataDeleteTr() {
     const target = $('#select-target').val();
     const $rows = $('#collect-table tbody tr');
@@ -2018,7 +2346,7 @@ function SelectedChangeFilterDataDeleteTr() {
 }
 
 
-/* 데이터 삭제 | 테이블 행 클릭 */
+/* 자동 삭제 | 테이블 행 클릭 */
 async function SelectedDataDeleteRow(el) {
 	selectListItem($('#collect-body'), el, 'tr');
 
@@ -2069,7 +2397,7 @@ async function SelectedDataDeleteRow(el) {
 }
 
 
-/* 데이터 자동화 (공용) | 입력폼 초기화 */
+/* 데이터 관리 (공용) | 입력폼 초기화 */
 function ResetDataAutomationForm(title) {
 	switch (title) {
 		case 'dataDelete':
@@ -2095,6 +2423,20 @@ function ResetDataAutomationForm(title) {
 			$run.prop('checked', false);
 			$('#collect-body').find('tr').removeClass('row-select');
 			break;
+		case 'dataEdit':
+			$('#append-id').val('0');
+			$('#append-place-code').val('0');
+			$('#place-name').val('');
+			$('#logger-code').val('');
+			$('#sensor-name').val('');
+			$('#sensor-code').val('');
+			$('#measured-at').val('');
+			$('#sensor-initial').val('');
+			$('#sensor-correction').val('');
+			$('#sensor-displace').val('');
+			$('#sensor-angle').val('');
+			$('#sensor-changed').val('');
+			break;
 	}
 }
 
@@ -2103,13 +2445,15 @@ function ResetDataAutomationForm(title) {
 
 /* 화면 시작시 실행 이벤트 */
 $(document).ready(function () {
-	
-	/* 드랍 메뉴 클릭 이벤트 */
-	$('[data-category]').on('click', function (e) {
+	$('[data-category]').on('click', async function (e) {
 		e.preventDefault();
-		loadContent($(this).data('category'), this);
+		const category = $(this).data('category');
+
+		await loadContent(category, this);
+		manageAutoReload(category);
 	});
 	
-	/* 카테고리 컨텐츠 */
-	loadContent($('#category').val());
+	const initCategory = $('#category').val();
+	loadContent(initCategory);
+	manageAutoReload(initCategory);
 });

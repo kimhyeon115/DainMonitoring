@@ -55,7 +55,9 @@
 			<div class="container-xxl content-top-bar">
 				<div class="content-top-inner">
 					<div>
+						<!--
 						<a href="#"><i class="fas fa-user-shield"></i> 관리</a>
+						-->
 						<a th:href="@{/{pageName}/system(pageName=${model.pageName})}"><i class="fas fa-gears"></i> 설정</a>
 						<a th:href="@{/{pageName}/signOut(pageName=${model.pageName})}"><i class="fas fa-right-from-bracket"></i> 로그아웃</a>
 					</div>
@@ -69,24 +71,28 @@
 								<div class="company-title"><span th:text="${management[0].comFullName}" class="company-name"></span></div>
 								<th:block th:each="company : ${management}">
 						    		<div th:id="'companyTap_' + ${company.placeId}" class="card-body">
-						            	<div th:id="'company_' + ${company.placeId}" class="place">
+						            	<div th:id="'company_' + ${company.placeId}" class="place card-switch">
 											<a th:href="${company.url}" role="button" target="_blank">
 												<span th:text="${company.placeShortName}" class="company-korname"></span>
 											</a>
+											<span th:class="${company.oldVersion ? 'company-old-version' : 'company-new-version'}"
+												th:text="${company.oldVersion ? '이전 버전' : '신규 버전'}"></span>
 										</div>
 										<div class="card table-card" th:data-run="${company.run}">
 											<div class="card-switch">
 												<span class="card-status-text"></span>
-												<div class="card-switch-label">
-													<span class="switch-label">외부 접속</span>
-													<div class="form-check form-switch">
-														<label th:id="'switch_' + ${company.placeId} + '_label'" class="form-check-label" th:for="'switch_' + ${company.placeId}"></label>
-													 	<input th:id="'switch_' + ${company.placeId}" class="form-check-input" type="checkbox" 
-															role="switch" th:checked="${company.open}" th:data-open="${company.open}"
-															th:data-korname="${company.placeShortName}"	th:data-place_id="${company.placeId}" 
-															onchange="OpenSwitchChange(this)" />
+												<th:block th:if="${company.oldVersion == false}">
+													<div class="card-switch-label">
+														<span class="switch-label">외부 접속</span>
+														<div class="form-check form-switch">
+															<label th:id="'switch_' + ${company.placeId} + '_label'" class="form-check-label" th:for="'switch_' + ${company.placeId}"></label>
+														 	<input th:id="'switch_' + ${company.placeId}" class="form-check-input" type="checkbox" 
+																role="switch" th:checked="${company.open}" th:data-open="${company.open}"
+																th:data-korname="${company.placeShortName}"	th:data-place_id="${company.placeId}" 
+																onchange="OpenSwitchChange(this)" />
+														</div>
 													</div>
-												</div>
+												</th:block>
 											</div>
 											<div class="table-responsive table-outer">
 								            	<table class="table mb-0">

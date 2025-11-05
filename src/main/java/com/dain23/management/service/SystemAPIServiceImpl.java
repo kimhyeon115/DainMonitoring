@@ -14,6 +14,8 @@ import org.springframework.stereotype.Service;
 import com.dain23.common.model.HeaderEntity;
 import com.dain23.common.model.ResponseData;
 import com.dain23.management.mapper.SystemMapper;
+import com.dain23.management.model.TransactionPlace;
+import com.dain23.management.model.TransactionSensor;
 import com.dain23.util.Const;
 
 import lombok.extern.slf4j.Slf4j;
@@ -25,6 +27,9 @@ public class SystemAPIServiceImpl implements SystemAPIService {
 	/* 매퍼 */
 	@Autowired
 	private SystemMapper systemMapper;
+	
+	@Autowired
+	private TransactionService transactionService;
 	
 	
 	/* (공용) 타겟 데이터 정보 조회 및 반환 */
@@ -40,6 +45,7 @@ public class SystemAPIServiceImpl implements SystemAPIService {
 				case "DMSSensor" -> systemMapper.selectSingleSensor(params);
 				case "DMSsensortypesetting" -> systemMapper.selectSingleSensorTypeSetting(params);
 				case "moveandbackup" -> systemMapper.selectSingleMoveAndBackup(params);
+				case "dataedit" -> systemMapper.selectSingleDataEdit(params);
 			    case "datadelete" 	-> systemMapper.selectSingleDataDelete(params);
 			    default -> null;
 			};
@@ -167,49 +173,26 @@ public class SystemAPIServiceImpl implements SystemAPIService {
 
 	/* DMS 현장 정보 저장,수정,삭제 */
 	public ResponseData upsertDmsPlace(Map<String, Object> params) {
-		try {
-			boolean mode = Boolean.parseBoolean(params.get("mode").toString());
-			int successPlace;
-			int successUser = 0;
+        TransactionPlace transactionPlace = null;
+        
+        try {
+        	transactionPlace = transactionService.upsertDmsPlaceDml(params);
+            
+            if (transactionPlace.isNeedsTableCreation()) {
+                systemMapper.createDataTable(transactionPlace.getPlaceCode()); 
+                systemMapper.updatePlaceCreated(transactionPlace.getPlaceCode());
+            }
+            
+            boolean mode = Boolean.parseBoolean(params.get("mode").toString());
+            String message = mode ? Const.UPSERT_SUCCESS : Const.DELETE_SUCCESS;
+            return ResponseData.of(HeaderEntity.of(HttpStatus.OK, Const.SUCCESS_CODE, message));
+        } catch (Exception e) {
+            return ResponseData.of(HeaderEntity.fail());
+        }
+    }
 
-			if (mode) {
-				successPlace = systemMapper.upsertDmsPlace(params);
-				
-				if (successPlace > 0) {
-					String placeCode = params.get("code").toString();
-					Map<String, Object> placeInfo = systemMapper.selectPlaceId(placeCode);
-					
-					if (!((Boolean) placeInfo.get("created"))) {
-						boolean created;
-						try {
-							systemMapper.createDataTable(placeCode);
-							created = true;
-						} catch (Exception e) {
-							created = false;
-						}
-						if (created) systemMapper.updatePlaceCreated(placeCode);
-					}
-					successUser = systemMapper.upsertDmsUser(params, Integer.parseInt(placeInfo.get("id").toString()));
-				}
-			} else {
-				successPlace = systemMapper.deleteDmsPlace(params);
-				successUser = systemMapper.deleteDmsUser(params.get("uid").toString());
-			}
-			
-			boolean success = successPlace > 0 && successUser > 0;
-			int code  = success ? Const.SUCCESS_CODE : Const.FAIL_CODE;
-			String message = mode
-		            ? (success ? Const.UPSERT_SUCCESS : Const.UPSERT_FAIL)
-		            : (success ? Const.DELETE_SUCCESS : Const.DELETE_FAIL);
-
-	        return ResponseData.of(HeaderEntity.of(HttpStatus.OK, code, message));
-		} catch (Exception e) {
-			return ResponseData.of(HeaderEntity.fail());
-		}
-	}
-
-
-
+	
+	
 	/* DMS 로거 정보 저장,수정,삭제 */
 	public ResponseData upsertDmsLogger(Map<String, Object> params) {
 		try {
@@ -233,19 +216,15 @@ public class SystemAPIServiceImpl implements SystemAPIService {
 
 	/* DMS 센서 정보 저장,수정,삭제 */
 	public ResponseData upsertDmsSensor(Map<String, Object> params) {
+		
+		TransactionSensor transactionSensor = null;
+		
 		try {
+			transactionSensor = transactionService.upsertDmsSensorDml(params);
+			
 			boolean mode = Boolean.parseBoolean(params.get("mode").toString());
-			int success = mode 
-					? systemMapper.upsertDmsSensor(params)
-					: systemMapper.deleteDmsSensor(params);
-			
-			Map<String, Object> typeSetInfo = systemMapper.selectSensorTypeSetting(params);
-			int count = Integer.parseInt(typeSetInfo.get("find_setting").toString());
-			if (count == 0) {
-				int nextOrder = Integer.parseInt(typeSetInfo.get("next_group_order").toString());
-				systemMapper.insertSensorTypeSetting(params, nextOrder);
-			}
-			
+            int success = transactionSensor.getSuccessCount();
+            
 			int code = (success > 0) ? Const.SUCCESS_CODE : Const.FAIL_CODE;
 			String message = mode
 		            ? (success > 0 ? Const.UPSERT_SUCCESS : Const.UPSERT_FAIL)
@@ -262,18 +241,18 @@ public class SystemAPIServiceImpl implements SystemAPIService {
 	/* DMS 계산식 적용 정보 저장 */
 	public ResponseData insertDmsApplyCalculation(Map<String, Object> params) {
 		try {
-			int successParam = 0;
-			int successApply = systemMapper.insertDmsApplyCalculation(params);
+			int targetCount = systemMapper.selectExecutionCalculationCount(params);
 			
-			List<Map<String, Object>> paramList = (List<Map<String, Object>>) params.get("param");
-	        if (paramList != null && !paramList.isEmpty()) {
-	            successParam = systemMapper.insertDmsCalculationParam(params);
-	        }
+			if (targetCount > 5000) {
+				return ResponseData.of(HeaderEntity.of(HttpStatus.OK, Const.BAD_REQUEST_CODE,
+	                "적용 대상 데이터가 " + targetCount + "건입니다.\n" +
+	                "5000건을 초과하므로 기간을 나누어 다시 설정하세요."));
+			}
 			
-	        boolean success = successApply > 0 && (paramList == null || paramList.isEmpty() || successParam > 0);
-			int code  = success ? Const.SUCCESS_CODE : Const.FAIL_CODE;
-	        String message = success ? Const.UPSERT_SUCCESS : Const.UPSERT_FAIL;
-
+			transactionService.insertDmsApplyCalculationDml(params, targetCount);
+			
+			int code = Const.SUCCESS_CODE;
+	        String message = Const.UPSERT_SUCCESS;
 	        return ResponseData.of(HeaderEntity.of(HttpStatus.OK, code, message));
 		} catch (Exception e) {
 			return ResponseData.of(HeaderEntity.fail());
@@ -291,16 +270,13 @@ public class SystemAPIServiceImpl implements SystemAPIService {
 				return ResponseData.of(HeaderEntity.of(HttpStatus.OK, Const.BAD_REQUEST_CODE,
 	                "적용 대상 데이터가 " + targetCount + "건입니다.\n" +
 	                "5000건을 초과하므로 기간을 나누어 다시 설정하세요."));
-			} else {
-				systemMapper.updateSensorInitialCalculation(params);
 			}
 			
-			int success = systemMapper.insertDmsSensorInitial(params);
-			
-			int code  = (success > 0) ? Const.SUCCESS_CODE : Const.FAIL_CODE;
-	        String message = (success > 0) ? Const.UPSERT_SUCCESS : Const.UPSERT_FAIL;
+			transactionService.insertDmsSensorInitialDml(params, targetCount);
 	        
-			return ResponseData.of(HeaderEntity.of(HttpStatus.OK, code, message));
+	        int code = Const.SUCCESS_CODE;
+	        String message = Const.UPSERT_SUCCESS;
+	        return ResponseData.of(HeaderEntity.of(HttpStatus.OK, code, message));
 		} catch (Exception e) {
 			return ResponseData.of(HeaderEntity.fail());
 		}
@@ -387,7 +363,39 @@ public class SystemAPIServiceImpl implements SystemAPIService {
 	
 	
 	
-	/*  데이터 삭제 컨텐츠 콤보박스 데이터 반환 */
+	/*  수동 편집 컨텐츠 콤보박스 데이터 반환 */
+	public Map<String, Object> selectComboOfDataEdit(Map<String, Object> params) {
+		String placeId = Objects.toString(params.get("placeId"), null);
+
+        Map<String, Object> result = new LinkedHashMap<>();
+
+        if (placeId != null && !placeId.isEmpty()) {
+            Map<String, Supplier<List<Map<String, Object>>>> placeSuppliers = Map.of(
+                "applySensorTypeCombo", () -> systemMapper.selectApplySensorTypeCombo(placeId),
+                "sensorCombo", () -> systemMapper.selectSensorCombo(placeId)
+            );
+            placeSuppliers.forEach((key, supplier) -> result.put(key, supplier.get()));
+        }
+        
+        String searchFrom = Objects.toString(params.get("searchFrom"), null);
+        String searchTo = Objects.toString(params.get("searchTo"), null);
+        String placeCode = Objects.toString(params.get("placeCode"), null);
+        String sensorId = Objects.toString(params.get("sensorId"), null);
+        
+        if (searchFrom == null || searchTo == null || sensorId == null || placeCode == null) {
+        	result.put("dataEdit", Collections.emptyList());
+        } else {
+        	params.put("searchFrom", searchFrom += " 00:00:00");
+        	params.put("searchTo", searchTo += " 23:59:59");
+        	result.put("dataEdit", systemMapper.selectDataEdit(params));
+        }
+        
+        return result;
+	}
+	
+	
+	
+	/*  자동 삭제 컨텐츠 콤보박스 데이터 반환 */
 	public Map<String, Object> selectComboOfDataDel(Map<String, Object> params) {
 		String placeId = Objects.toString(params.get("placeId"), null);
 		
@@ -406,7 +414,31 @@ public class SystemAPIServiceImpl implements SystemAPIService {
 	
 	
 	
-	/* 파일관리 이동및백업 저장,수정,삭제 */
+	/* 데이터 관리 수동 편집 수정,삭제 */
+	public ResponseData updateDataEdit(Map<String, Object> params) {
+		
+		try {
+			boolean mode = Boolean.parseBoolean(params.get("mode").toString());
+
+			int success = mode
+					? systemMapper.updateDataEdit(params)
+					: systemMapper.removeDataEdit(params);
+
+			int code = (success > 0) ? Const.SUCCESS_CODE : Const.FAIL_CODE;
+			String message = mode
+		            ? (success > 0 ? Const.UPSERT_SUCCESS : Const.UPSERT_FAIL)
+		            : (success > 0 ? Const.DELETE_SUCCESS : Const.DELETE_FAIL);
+			
+			return ResponseData.of(HeaderEntity.of(HttpStatus.OK, code, message));
+		} catch (Exception e) {
+			e.printStackTrace();
+			return ResponseData.of(HeaderEntity.fail());
+		}
+	}
+	
+	
+	
+	/* 데이터 관리 자동 삭제 저장,수정,삭제 */
 	public ResponseData upsertDataDelete(Map<String, Object> params) {
 
 		try {
@@ -419,6 +451,23 @@ public class SystemAPIServiceImpl implements SystemAPIService {
 			String message = mode
 		            ? (success > 0 ? Const.UPSERT_SUCCESS : Const.UPSERT_FAIL)
 		            : (success > 0 ? Const.DELETE_SUCCESS : Const.DELETE_FAIL);
+			
+			return ResponseData.of(HeaderEntity.of(HttpStatus.OK, code, message));
+		} catch (Exception e) {
+			return ResponseData.of(HeaderEntity.fail());
+		}
+	}
+	
+	
+	
+	/* 스케줄러 | 계측 업로드 로거 상태 수정 */
+	public ResponseData updateLoggerStatus(Map<String, Object> params) {
+
+		try {
+			int success = systemMapper.updateLoggerStatus(params);
+			
+			int code = (success > 0) ? Const.SUCCESS_CODE : Const.FAIL_CODE;
+			String message = success > 0 ? Const.UPSERT_SUCCESS : Const.UPSERT_FAIL;
 			
 			return ResponseData.of(HeaderEntity.of(HttpStatus.OK, code, message));
 		} catch (Exception e) {

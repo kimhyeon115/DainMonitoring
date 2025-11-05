@@ -1,4 +1,4 @@
-package com.dain23.ddm.controller;
+package com.dain23.development.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -13,11 +13,11 @@ import com.dain23.common.service.CommonService;
  *	도메인 요청 수신 및 화면 반환
  **/
 @Controller
-@RequestMapping("/ddm")
-public class DdmController {
+@RequestMapping("development")
+public class DevelopmentController {
 
 	/* 현장 코드 */
-	private final String placeCode = "ddm";
+	private final String placeCode = "development";
 	
 	/* 서비스 */
 	@Autowired

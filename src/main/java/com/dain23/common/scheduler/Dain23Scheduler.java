@@ -22,5 +22,13 @@ public class Dain23Scheduler {
 		int expireMinutes = 60;
 		commonService.clearExpiredSession(expireMinutes);
 	}
+	
+	
+	
+	/* 업로드 로그 삭제 */
+	@Scheduled(cron = "0 5 0 * * *")
+	public void cleanOldUploadLogs() {
+		commonService.clearOldUploadLogs();
+	}
 
 }

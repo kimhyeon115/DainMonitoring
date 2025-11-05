@@ -27,4 +27,6 @@ public interface CommonService {
 	
 	public void clearExpiredSession(int minutes);
 	
+	public void clearOldUploadLogs();
+	
 }

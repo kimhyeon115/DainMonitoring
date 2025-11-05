@@ -6,6 +6,9 @@ import java.util.Map;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import com.dain23.management.model.DataEditBoby;
+import com.dain23.management.model.InitialBody;
+
 @Mapper
 public interface SystemMapper {
 
@@ -81,7 +84,7 @@ public interface SystemMapper {
 	
 	List<Map<String, Object>> selectApplyCalculation(@Param("sensorId") String sensorId);
 	
-	List<Map<String, Object>> selectSensorInitial(@Param("sensorId") String sensorId);
+	List<InitialBody> selectSensorInitial(@Param("sensorId") String sensorId);
 	
 	int insertDmsApplyCalculation(@Param("params") Map<String, Object> params);
 	
@@ -128,5 +131,25 @@ public interface SystemMapper {
 	int selectInitialCalculationCount(@Param("params") Map<String, Object> params);
 	
 	int updateSensorInitialCalculation(@Param("params") Map<String, Object> params);
+	
+	List<Map<String, Object>> selectApplySensorTypeCombo(@Param("placeId") String placeId);
+	
+	List<DataEditBoby> selectDataEdit(@Param("params") Map<String, Object> params);
+	
+	Map<String, Object> selectSingleDataEdit(@Param("params") Map<String, Object> params);
+	
+	int updateDataEdit(@Param("params") Map<String, Object> params);
+	
+	int removeDataEdit(@Param("params") Map<String, Object> params);
+	
+	List<Map<String, Object>> selectLogger();
+	
+	List<Map<String, Object>> selectUploadLog();
+	
+	int selectExecutionCalculationCount(@Param("params") Map<String, Object> params);
+	
+	int updateSensorNewCalculation(@Param("params") Map<String, Object> params);
+	
+	int updateLoggerStatus(@Param("params") Map<String, Object> params);
 	
 }

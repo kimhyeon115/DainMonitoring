@@ -84,5 +84,5 @@
     <delete id="deleteExpiredSession">
     	DELETE FROM admin_session WHERE expiry_at <![CDATA[ < ]]> NOW() - INTERVAL #{minutes} MINUTE
     </delete>
-
+    
 </mapper>

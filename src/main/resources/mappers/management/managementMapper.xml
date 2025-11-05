@@ -10,6 +10,7 @@
 			dp.code AS placeCode,
 			dp.run,
 			dp.`open`,
+			dp.old_version,
 			dp.used,
 			COALESCE(dp.url, '#') AS url,
 			dp.short_name AS placeShortName

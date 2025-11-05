@@ -200,5 +200,12 @@ public class CommonServiceImpl implements CommonService {
 	public void clearExpiredSession(int minutes) {
 		sessionMapper.deleteExpiredSession(minutes);
 	}
+	
+	
+	
+	/* 계측 업로드 로그 삭제 */
+	public void clearOldUploadLogs() {
+		commonMapper.deleteOldUploadLogs();
+	}
 
 }

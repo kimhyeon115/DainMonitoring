@@ -13,7 +13,6 @@
 
 .append-card {
 	width: 100%;
-	height: 800px;
 	background-color: white;
 }
 
@@ -37,12 +36,6 @@
 
 .dms-set-title:hover {
 	cursor: pointer;
-}
-
-.append-card-datadel {
-	width: 100%;
-	height: 610px;
-	background-color: white;
 }
 
 .append-inner {
@@ -156,6 +149,14 @@
 
 .table-title {
 	height: 60px;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin: 0 15px;
+}
+
+.table-title-edit {
+	height: 80px;
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
@@ -466,6 +467,62 @@ a.cal-big-btn.disabled {
 .val-color-blue {
 	color: #206bc4;
 	font-weight: 500;
+}
+
+.val-color-orange {
+	color: #f76707;
+	font-weight: 500;
+}
+
+.val-color-green {
+	color: #2aa13d;
+	font-weight: 500;
+}
+
+.val-color-gray {
+	color: #616876;;
+	font-weight: 500;
+}
+
+.log-inner {
+	width: 100%;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	padding: 25px 0;
+	border: 1px solid #206bc4;
+	border-radius: 15px;
+	background-color: white;
+}
+
+.log-title {
+	align-self: flex-start;
+	margin-left: 5%;
+	margin-bottom: 10px;
+	font-size: 18px;
+	font-weight: 600;
+	color: #206bc4;
+}
+
+.upload-log-form {
+	width: 90%;
+	height: 485px;
+	border: 1px solid #ccc;
+	background-color: #f8fafc;
+	overflow-y: auto;
+}
+
+.upload-log-form table {
+	width: 100%;
+	border-collapse: collapse;
+	table-layout: fixed;
+}
+
+.upload-log-form th {
+	position: sticky;
+	top: 0;
+	background: #e9eef5;
+	z-index: 2;
 }
 
 @keyframes shake {

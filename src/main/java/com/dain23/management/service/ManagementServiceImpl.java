@@ -48,7 +48,7 @@ public class ManagementServiceImpl implements ManagementService {
 		try {
 			
 			List<Management> management = managementMapper.selectManagementInUse();
-			
+
 			List<List<Management>> groupManagement = GroupingData.groupByComShortName(management);
 			for (List<Management> managements : groupManagement) {
 				for (Management manage : managements) {

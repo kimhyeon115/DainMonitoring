@@ -41,6 +41,7 @@ public class SystemAPIController {
 		/* 카테고리 기준 실행 서비스 정의 */
 		Map<String, Runnable> attrMap = Map.of(
 			"dmsSetting", () -> model.addAllAttributes(systemAPIService.selectComboOfDmsSetting(params)),
+			"dataEdit", () -> model.addAllAttributes(systemAPIService.selectComboOfDataEdit(params)),
 			"dataDelete", () -> model.addAllAttributes(systemAPIService.selectComboOfDataDel(params))
 	    );
 		
@@ -158,11 +159,29 @@ public class SystemAPIController {
 	
 	
 	
-	/* 데이터 삭제 설정 정보 */
+	/* 수동 편집 */
+	@PostMapping("dataedit")
+	@ResponseBody
+	public ResponseData dataEditSave(@RequestBody Map<String, Object> params) {
+		return systemAPIService.updateDataEdit(params);
+	}
+	
+	
+	
+	/* 자동 삭제 설정 정보 */
 	@PostMapping("datadelete")
 	@ResponseBody
 	public ResponseData dataDeleteSave(@RequestBody Map<String, Object> params) {
 		return systemAPIService.upsertDataDelete(params);
+	}
+	
+	
+	
+	/* 계측 업로드 | 로거 상태 변경 */
+	@PostMapping("loggerstatus")
+	@ResponseBody
+	public ResponseData loggerStatusUpdate(@RequestBody Map<String, Object> params) {
+		return systemAPIService.updateLoggerStatus(params);
 	}
 	
 }

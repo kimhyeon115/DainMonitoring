@@ -87,4 +87,6 @@ public interface CommonMapper {
 		@Param("excel") boolean excel
 	);
 	
+	void deleteOldUploadLogs();
+	
 }

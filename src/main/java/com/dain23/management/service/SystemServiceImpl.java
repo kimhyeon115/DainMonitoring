@@ -1,5 +1,6 @@
 package com.dain23.management.service;
 
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,6 +20,20 @@ public class SystemServiceImpl implements SystemService {
 	/* 매퍼 */
 	@Autowired
 	private SystemMapper systemMapper;
+	
+	
+	/* 계측 업로드 컨텐츠 데이터 반환 */
+	public Map<String, Object> getUploadMeasurementsFrame() {
+		Map<String, Supplier<List<Map<String, Object>>>> suppliers = Map.of(
+			"selectUplodaLog", systemMapper::selectUploadLog,
+	        "selectLogger", systemMapper::selectLogger
+	    );
+		
+		Map<String, Object> result = new LinkedHashMap<>();
+		suppliers.forEach((key, supplier) -> result.put(key, supplier.get()));
+	    return result;
+	}
+	
 	
 	
 	/* DMS 설정 컨텐츠 데이터 반환 */
@@ -49,6 +64,18 @@ public class SystemServiceImpl implements SystemService {
 	    Map<String, Object> result = new LinkedHashMap<>();
 	    suppliers.forEach((key, supplier) -> result.put(key, supplier.get()));
 	    return result;
+	}
+	
+	
+	/* 데이터 편집 컨텐츠 데이터 반환 */
+	public Map<String, Object> getDataEditFrame() {
+		Map<String, Supplier<List<Map<String, Object>>>> suppliers = Map.of(
+	        "selectPlaceCombo", systemMapper::selectPlaceCombo
+	    );
+		Map<String, Object> result = new LinkedHashMap<>();
+		result.put("selectSensorData", Collections.emptyList());
+		suppliers.forEach((key, supplier) -> result.put(key, supplier.get()));
+		return result;
 	}
 	
 	

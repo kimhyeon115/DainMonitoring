@@ -31,6 +31,14 @@
 					<ul class="navbar-nav gap-5">
 						<li class="nav-item dropdown">
 							<a class="nav-link dropdown-toggle" href="#navbar-third" data-bs-toggle="dropdown" data-bs-auto-close="outside" role="button" aria-expanded="false">
+								<span class="nav-link-title fw-bold">스케줄러</span>
+							</a>
+							<div class="dropdown-menu">
+								<a class="dropdown-item" href="#" data-category="uploadMeasurements">계측 업로드</a>
+							</div>
+						</li>
+						<li class="nav-item dropdown">
+							<a class="nav-link dropdown-toggle" href="#navbar-third" data-bs-toggle="dropdown" data-bs-auto-close="outside" role="button" aria-expanded="false">
 								<span class="nav-link-title fw-bold">DMS</span>
 							</a>
 							<div class="dropdown-menu">
@@ -47,29 +55,27 @@
 						</li>
 						<li class="nav-item dropdown">
 							<a class="nav-link dropdown-toggle" href="#navbar-third" data-bs-toggle="dropdown" data-bs-auto-close="outside" role="button" aria-expanded="false">
+								<span class="nav-link-title fw-bold">데이터 관리</span>
+							</a>
+							<div class="dropdown-menu">
+								<a class="dropdown-item" href="#" data-category="dataEdit">수동 편집</a>
+								<!--
+								<a class="dropdown-item" href="#" data-category="dataIn">자동 추가</a>
+								<a class="dropdown-item" href="#" data-category="dataUp">자동 수정</a>
+								-->
+								<a class="dropdown-item" href="#" data-category="dataDelete">자동 삭제</a>
+							</div>
+						</li>
+						<li class="nav-item dropdown">
+							<a class="nav-link dropdown-toggle" href="#navbar-third" data-bs-toggle="dropdown" data-bs-auto-close="outside" role="button" aria-expanded="false">
 								<span class="nav-link-title fw-bold">서비스</span>
 							</a>
 							<div class="dropdown-menu">
+								<a class="dropdown-item" href="#">개발 예정입니다</a>
+								<!--
 								<a class="dropdown-item" href="#" data-category="webSms">문자 알림 발송</a>
 								<a class="dropdown-item" href="#" data-category="confrimSms">문자 컨펌후 알림</a>
-							</div>
-						</li>
-						<li class="nav-item dropdown">
-							<a class="nav-link dropdown-toggle" href="#navbar-third" data-bs-toggle="dropdown" data-bs-auto-close="outside" role="button" aria-expanded="false">
-								<span class="nav-link-title fw-bold">데이터 자동화</span>
-							</a>
-							<div class="dropdown-menu">
-								<a class="dropdown-item" href="#" data-category="dataIn">데이터 추가</a>
-								<a class="dropdown-item" href="#" data-category="dataUp">데이터 수정</a>
-								<a class="dropdown-item" href="#" data-category="dataDelete">데이터 삭제</a>
-							</div>
-						</li>
-						<li class="nav-item dropdown">
-							<a class="nav-link dropdown-toggle" href="#navbar-third" data-bs-toggle="dropdown" data-bs-auto-close="outside" role="button" aria-expanded="false">
-								<span class="nav-link-title fw-bold">스케줄러</span>
-							</a>
-							<div class="dropdown-menu">
-								<a class="dropdown-item" href="#" data-category="uploadMeasurements">계측 데이터 업로드</a>
+								-->
 							</div>
 						</li>
 					</ul>
@@ -87,7 +93,7 @@
 		</div>
 	</header>
 	
-	<input type="hidden" id="category" value="dmsSetting">
+	<input type="hidden" id="category" value="uploadMeasurements">
 	
 	<main class="page-wrapper"></main>
 	
@@ -95,7 +101,7 @@
 	<div id="loadingOverlay">
 		<div class="loading-content">
 			<img src="/common/images/loading.png" alt="Loading..." class="rotate" />
-			<p class="loading-text mt-3" style="color: #206bc4; font-weight: 500;">초기치 적용 중입니다...</p>
+			<p id="loading-message" class="loading-text mt-3" style="color: #206bc4; font-weight: 500;"></p>
 		</div>
 	</div>
 	

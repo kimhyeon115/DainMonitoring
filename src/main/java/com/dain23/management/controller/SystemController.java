@@ -53,8 +53,10 @@ public class SystemController {
 		
 		/* 카테고리 기준 실행 서비스 정의 */
 		Map<String, Runnable> attrMap = Map.of(
+			"uploadMeasurements", () -> model.addAllAttributes(systemService.getUploadMeasurementsFrame()),
 			"dmsSetting", () -> model.addAllAttributes(systemService.getDmsSettingFrame()),
 	        "moveAndBackup", () -> model.addAllAttributes(systemService.getMoveAndBackupFrame()),
+	        "dataEdit", () -> model.addAllAttributes(systemService.getDataEditFrame()),
 	        "dataDelete", () -> model.addAllAttributes(systemService.getDataDeleteFrame())
 	    );
 

@@ -61,6 +61,7 @@
 		) dt ON dl.id = dt.logger_id
 		WHERE
 		    dl.place_id = #{placeId}
+		    AND dl.used = true 
 		ORDER BY 
 			dl.code
 	</select>
@@ -101,6 +102,7 @@
 			dl.place_id = #{placeId}
 			AND dl.cycle_check = true
 			AND ds.used = true
+			AND dst.id != 1
     </select>
     
     
@@ -147,6 +149,7 @@
 			AND dl.cycle_check = false
 			AND dsts.hidden = false
 			AND ds.used = true
+			AND dst.id != 1
     </select>
     
     
@@ -225,6 +228,9 @@
 		JOIN dain_sensor_type dst ON dst.id = ds.sensor_type_id
 		WHERE
 			dp.code = #{placeCode}
+			AND dl.used = true 
+			AND ds.used = true
+			AND dst.id != 1
     </select>
     
     
@@ -461,5 +467,11 @@
 	    	DESC LIMIT #{limit} OFFSET #{offset}
 	    </if>
     </select>
+    
+    
+    <!-- 스케줄러 계측 업로드 로그 삭제 -->
+    <delete id="deleteOldUploadLogs">
+	    DELETE FROM system_upload_log WHERE run_time <![CDATA[ < ]]> CURDATE()
+    </delete>
     
 </mapper>
