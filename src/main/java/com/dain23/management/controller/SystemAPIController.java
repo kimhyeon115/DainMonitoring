@@ -159,11 +159,20 @@ public class SystemAPIController {
 	
 	
 	
-	/* 수동 편집 */
+	/* 수동 편집 정보 */
 	@PostMapping("dataedit")
 	@ResponseBody
 	public ResponseData dataEditSave(@RequestBody Map<String, Object> params) {
 		return systemAPIService.updateDataEdit(params);
+	}
+	
+	
+	
+	/* 수동 편집 상태 */
+	@PostMapping("datastatus")
+	@ResponseBody
+	public ResponseData dataStatusUpdate(@RequestBody Map<String, Object> params) {
+		return systemAPIService.updateDataStatus(params);
 	}
 	
 	

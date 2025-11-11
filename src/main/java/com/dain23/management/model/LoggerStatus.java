@@ -14,6 +14,7 @@ public class LoggerStatus {
 	private String cdmaNo;
 	private String installDt;
 	private String uploadedAt;
+	private boolean cycleCheck;
 	private int pcId;
 	private String pcName;
 }

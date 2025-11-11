@@ -23,5 +23,17 @@ public interface ManagementMapper {
 	int updateOpenOrClose(@Param("params") Map<String, Object> params);
 	
 	List<Map<String, Object>> selectLoggerDetail();
+	
+	List<Map<String, Object>> findSensorInLogger(@Param("params") Map<String, Object> params);
+	
+	List<Map<String, Object>> selectTransitionData(@Param("params") Map<String, Object> params);
+	
+	List<Map<String, Object>> selectAvgTransitionData(@Param("params") Map<String, Object> params);
+	
+	int countSensorDataRows(@Param("params") Map<String, Object> params);
+	
+	Map<String, Object> selectAnalysisData(@Param("params") Map<String, Object> params);
+	
+	List<Map<String, Object>> selectFailRecord(@Param("params") Map<String, Object> params);
 
 }

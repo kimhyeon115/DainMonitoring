@@ -10,4 +10,10 @@ public interface ManagementAPIService {
 
 	ResponseData openOrClosePage(Map<String, Object> params);
 	
+	Map<String, Object> findSensorInLogger(Map<String, Object> params);
+	
+	ResponseData makemakeAnalysisData(Map<String, Object> params);
+	
+	ResponseData makeTransitionData(Map<String, Object> params);
+	
 }

@@ -377,16 +377,13 @@ public class SystemAPIServiceImpl implements SystemAPIService {
             placeSuppliers.forEach((key, supplier) -> result.put(key, supplier.get()));
         }
         
-        String searchFrom = Objects.toString(params.get("searchFrom"), null);
-        String searchTo = Objects.toString(params.get("searchTo"), null);
+        String search = Objects.toString(params.get("search"), null);
         String placeCode = Objects.toString(params.get("placeCode"), null);
         String sensorId = Objects.toString(params.get("sensorId"), null);
         
-        if (searchFrom == null || searchTo == null || sensorId == null || placeCode == null) {
+        if (search == null || sensorId == null || placeCode == null) {
         	result.put("dataEdit", Collections.emptyList());
         } else {
-        	params.put("searchFrom", searchFrom += " 00:00:00");
-        	params.put("searchTo", searchTo += " 23:59:59");
         	result.put("dataEdit", systemMapper.selectDataEdit(params));
         }
         
@@ -432,6 +429,23 @@ public class SystemAPIServiceImpl implements SystemAPIService {
 			return ResponseData.of(HeaderEntity.of(HttpStatus.OK, code, message));
 		} catch (Exception e) {
 			e.printStackTrace();
+			return ResponseData.of(HeaderEntity.fail());
+		}
+	}
+	
+	
+	
+	/* 데이터 관리 수동 편집 데이터 사용여부 수정 */
+	public ResponseData updateDataStatus(Map<String, Object> params) {
+		
+		try {
+			int success = systemMapper.updateDataStatus(params);
+			
+			int code = (success > 0) ? Const.SUCCESS_CODE : Const.FAIL_CODE;
+			String message = success > 0 ? Const.UPSERT_SUCCESS : Const.UPSERT_FAIL;
+			
+			return ResponseData.of(HeaderEntity.of(HttpStatus.OK, code, message));
+		} catch (Exception e) {
 			return ResponseData.of(HeaderEntity.fail());
 		}
 	}

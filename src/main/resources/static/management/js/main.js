@@ -3,10 +3,18 @@
 let downloading = false;	// 다운로드 응답 대기 상태
 
 
+/* 공용 | 화면 로딩 */
+function loadingScreen(confirm, message = ''){
+	$('#loading-message').text(message);
+	if (confirm) $('#loadingOverlay').show();
+	else $('#loadingOverlay').hide();
+}
+
+
 /******** 공용 및 매니지먼트 전용 함수 ************************************************************************************************/
 
 		/* 공용 API 요청 */
-		async function PostRequest(endpoint, body = {}) {
+		async function PostRequest(endpoint, body = {}, responseType = 'json') {
 			try {
 				const response = await fetch(`/management/api/${endpoint}`, {
 			        method: "POST",
@@ -15,7 +23,9 @@ let downloading = false;	// 다운로드 응답 대기 상태
 			    });
 				
 				if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-				return await response.json();
+				
+				if (responseType === "text") return await response.text();
+		        else return await response.json();
 				
 			} catch (error) {
 				console.error("POST 요청 실패:", error);
@@ -193,7 +203,7 @@ let downloading = false;	// 다운로드 응답 대기 상태
 		}
 		
 
-		/* 로거정보 Edit 클릭 */
+		/* 로거정보 편집폼 클릭 */
 		function loggerEdit(el, event) {
 			event.preventDefault();
 			
@@ -216,7 +226,7 @@ let downloading = false;	// 다운로드 응답 대기 상태
 		}
 		
 
-		/* 로거정보 Edit폼 수정 요청 */
+		/* 로거정보 편집폼 수정 요청 */
 		async function UpdateLoggerEditForm() {
 			const result = LoggerFromVallidation();
 			if (typeof result === 'string') return showMessage(result);
@@ -238,7 +248,7 @@ let downloading = false;	// 다운로드 응답 대기 상태
 		}
 
 
-		/* 로거정보 Edit폼 입력값 유효검증 + body 반환 */
+		/* 로거정보 편집폼 입력값 유효검증 + body 반환 */
 		function LoggerFromVallidation() {
 			const code = $("#logger-name").text();
 			const name = $("#logger-korname").val().trim();
@@ -259,7 +269,7 @@ let downloading = false;	// 다운로드 응답 대기 상태
 		}
 		
 		
-		/* 로거정보 Edit폼 취소 */
+		/* 로거정보 편집폼 취소 */
 		function editCancel() {
 			$("#logger-name").text('');
 			$("#logger-korname").val('');
@@ -270,11 +280,203 @@ let downloading = false;	// 다운로드 응답 대기 상태
 		}
 
 		
-		/* 로거정보 Detail폼 클릭 */
-		function loggerDetails(el, event) {
+		/* 로거정보 분석폼 클릭 */
+		async function loggerAalysis(el, event) {
 			event.preventDefault();
-			return showMessage('기능 추가 예정입니다.');
+
+			const ds = $(el).data();
+			const version = ds.version;
+			if (version) return showMessage('[이전 버전] 현장은 사용할수 없는 기능입니다.');
+			
+			loadingScreen(true);
+			await new Promise(resolve => setTimeout(resolve, 500))
+			
+			const loggerId = ds.loggerId;
+			$('#analysis-logger').text(ds.loggerCode);
+			
+			const $html = await PostRequest("sensorinlogger", { loggerId }, "text");
+	        const $parsed = $('<div>').html($html);
+			$('#analysis-sensor').html($parsed.find('#transition-sensor').html());
+			
+			const success = await SelectAnalysisChartDate();
+						
+			if (success) {
+				$('.screen-blur, .analysis-form').removeClass('d-none');
+			} else {
+				return showMessage('조회 가능한 [센서]가 등록되지 않았습니다.');
+			}
 		}
+		
+		
+		/* 센서 분석 차트 데이터 조회 */
+		async function SelectAnalysisChartDate() {
+			loadingScreen(true);
+			const $el = $('#analysis-sensor');
+			const sensorId = $el.val();
+			const placeCode = $el.find(':selected').data('place');
+			
+			if (!sensorId) {
+				loadingScreen(false);
+				return false;
+			} 
+			
+			const res = await PostRequest("analysisdata", { sensorId, placeCode });
+
+			replaceAnalysisTable(res);
+			replaceAnalysisChart(res);
+			loadingScreen(false);
+			return true;
+		}
+		
+		
+		/* 분석 차트 업데이트 */
+		function replaceAnalysisChart(res) {
+			
+			const chartData = res.body.chartData;
+			const first = ['Task', 'Hours per Day'];
+			const todaySuccess = Number(chartData.today_success) || 0;
+			const todayFail = Number(chartData.today_fail) || 0;
+			const totalSuccess = Number(chartData.total_success) || 0;
+			const totalFail = Number(chartData.total_fail) || 0;
+			
+			const todayChart = [
+				first,
+				[`성공: ${todaySuccess}`, todaySuccess],
+				[`실패: ${todayFail}`, todayFail],
+			];
+			const totalChart = [
+				first,
+				[`성공: ${totalSuccess}`, totalSuccess],
+				[`실패: ${totalFail}`, totalFail],
+			];
+			
+			analysisPieChart(todayChart, 'analysis-chart-today', '오늘');
+			analysisPieChart(totalChart, 'analysis-chart-total', '전체');
+		}
+		
+		
+		/* 분석 테이블 업데이트 */
+		function replaceAnalysisTable(res) {
+			const data = res.body.totalFail;
+			const $tbody = $('#analysis-table-tbody');
+			$tbody.empty();
+			
+			if (!data || data.length === 0) {
+		        $tbody.append(`
+		            <tr><td colspan="4" style="text-align:center;">조회된 데이터가 없습니다</td></tr>
+		        `);
+		        return;
+		    }
+			
+			$.each(data, function(_, item) {
+		        const row = `
+		            <tr>
+		                <td>${item.measured ?? ''}</td>
+		                <td>${item.raw ?? ''}</td>
+		                <td>${item.status ?? ''}</td>
+		            </tr>
+		        `;
+		        $tbody.append(row);
+		    });
+		}
+		
+		
+		/* 로거 정보 추이폼 닫기 */
+		function closeAnalysisForm() {
+			$('.screen-blur, .analysis-form').addClass('d-none');
+		}
+		
+		
+		/* 로거정보 추이폼 클릭 */
+		async function loggerTransition(el, event) {
+			event.preventDefault();
+			
+			const ds = $(el).data();
+			const version = ds.version;
+			if (version) return showMessage('[이전 버전] 현장은 사용할수 없는 기능입니다.');
+			
+			loadingScreen(true);
+			await new Promise(resolve => setTimeout(resolve, 500))
+			
+			const loggerId = ds.loggerId;
+			$('#transition-logger').text(ds.loggerCode);
+			
+			const $html = await PostRequest("sensorinlogger", { loggerId }, "text");
+	        const $parsed = $('<div>').html($html);
+			$('#transition-sensor').html($parsed.find('#transition-sensor').html());
+			
+			const cycle = ds.cycle;
+			$('#transition-sensor').data('cycle', cycle);
+			
+			const success = await SelectTransitionChartDate(el);
+			
+			if (success) {
+				$('.screen-blur, .transition-form').removeClass('d-none');
+			} else {
+				return showMessage('조회 가능한 [센서]가 등록되지 않았습니다.');
+			}
+		}
+		
+		
+		/* 센서 추이 차트 데이터 조회 */
+		async function SelectTransitionChartDate(el) {
+			loadingScreen(true);
+			const $el = $('#transition-sensor');
+			const sensorId = $el.val();
+			const placeCode = $el.find(':selected').data('place');
+			
+			if (!sensorId) {
+				loadingScreen(false);
+				return false;
+			} 
+			
+			const res = await PostRequest("transitiondata", { sensorId, placeCode });
+			
+			const ds = $(el).data();
+			replaceChart(res, ds.cycle);
+			loadingScreen(false);
+			return true;
+		}
+		
+		
+		/* 추이 차트 업데이트 */
+		function replaceChart(res, cycle) {
+			const dataRows = res.body.sensorData;
+			if (dataRows.length == 0) return noDataGraph('chart');
+			
+		    const chartRows = dataRows.map(row => [new Date(row['date']), row['raw']]);
+			const column = [
+				{type: 'date', label: '수집일'},
+				{type: 'number', label: '수집값 (raw)'}
+			];
+			
+			const firstValue = chartRows[0][1];
+
+			const rawValues = chartRows.map(row => row[1]);
+			const dataMax = Math.max(...rawValues);
+			const dataMin = Math.min(...rawValues);
+
+			const distanceFromMax = Math.abs(dataMax - firstValue);
+			const distanceFromMin = Math.abs(dataMin - firstValue);
+			const dataRange = Math.max(distanceFromMax, distanceFromMin);
+
+			const safetyMargin = dataRange * 5;
+
+			const max = firstValue + dataRange + safetyMargin;
+			const min = firstValue - dataRange - safetyMargin;
+			
+			if (cycle)
+				transitionChart(column, chartRows, min, max);
+			else 
+				transitionColumnChart(column, chartRows, max);
+		}
+		
+		
+		/* 로거 정보 추이폼 닫기 */
+		function closeTransitionForm() {
+			$('.screen-blur, .transition-form').addClass('d-none');
+		}
+		
 
 
 async function ClientLoggerDownload() {

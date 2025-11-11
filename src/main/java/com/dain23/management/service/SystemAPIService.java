@@ -45,4 +45,6 @@ public interface SystemAPIService {
 	
 	ResponseData updateLoggerStatus(Map<String, Object> params);
 	
+	ResponseData updateDataStatus(Map<String, Object> params);
+	
 }

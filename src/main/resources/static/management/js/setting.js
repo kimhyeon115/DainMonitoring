@@ -248,8 +248,7 @@ async function loadContent(category, triggerElement) {
 		}
 		
 		if (category == 'dataEdit') {
-			$('#search-to').val(getTodayDate());
-			$('#search-from').val(getTodayDate());
+			$('#search-date').val(getTodayDate());
 			$('select').css('width', '150px');
 		}
 		
@@ -2145,42 +2144,42 @@ async function SelectDataEditTable() {
 /* 수동 편집 | 조회 입력값 유효검증 + body 반환 */
 function DataEditTableValidation() {
 	const category = $('#category').val();
-	const searchFrom = $('#search-from').val();
-	const searchTo = $('#search-to').val();
+	const search = $('#search-date').val();
 	const placeId = $('#pick-place').val();
 	const placeCode = $('#pick-place option:selected').attr('data-code');
 	const typeId = $('#pick-type').val();
 	const sensorId = $('#pick-sensor').val();
+	const used = $('#uesd-yn').val();
 	
-	if (!searchFrom || !searchTo) 
-		return '[검색 기간]을 선택하세요.';
-	if (new Date(searchFrom) > new Date(searchTo)) 
-		return '[검색 기간] 시작일은 종료일보다 이후일 수 없습니다.';
+	if (!search) 
+		return '[검색 일자]를 선택하세요.';
 	if (!placeId || !typeId || !sensorId) 
 		return '[현장, 타입, 센서]를 모두 선택하세요.';
-	const diffDays = (new Date(searchTo) - new Date(searchFrom)) / (1000 * 60 * 60 * 24);
-	if (diffDays > 3) return '[검색 기간]은 최대 3일 이내로만 설정할 수 있습니다.';
 	
 	return {
 		category
-		,searchFrom
-		,searchTo
+		,search
 		,placeId
 		,placeCode
 		,typeId
 		,sensorId
+		,used
 	};
 }
 
 
 /* 수동 편집 | 테이블 행 클릭 */
 async function SelectedDataEditRow(el) {
-	selectListItem($('#data-edit-body'), el, 'tr');
-
 	const id = $(el).data('id');
 	const place = $(el).data('place');
 	const type = 'dataedit';
+	
+	const used = $(el).data('used');
+	if (used != '1')
+		return RestorationDataEditRow(id, place);
 
+	selectListItem($('#data-edit-body'), el, 'tr');
+	
 	try {
 		const res = await PostRequest('find', { id, place, type });
 
@@ -2228,6 +2227,25 @@ async function SelectedDataEditRow(el) {
 		console.error(e);
 		showMessage("서버와의 연결에 문제가 발생했습니다. (네트워크 오류)");
 		await loadContent($('#category').val());
+	}
+}
+
+
+/* 수동 편집 | 테이터 복원 */
+async function RestorationDataEditRow(id, place) {
+	
+	const msg = `[삭제된] 데이터는 편집할 수가 없습니다.\n\n※데티터 [복원]을 하시겠습니끼?`;
+	
+	if (!confirm(msg)) return;
+	
+	try {
+		const res = await PostRequest('datastatus', { id, place });
+		showMessage(res.header.message);
+	} catch (e) {
+		console.error(e);
+		showMessage("서버와의 연결에 문제가 발생했습니다. (네트워크 오류)");
+	} finally {
+		await SelectDataEditTable();
 	}
 }
 

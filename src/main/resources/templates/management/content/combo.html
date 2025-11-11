@@ -260,8 +260,8 @@
 
 <tbody id="data-edit-body">
 	<th:block th:each="row : ${dataEdit}">
-		<tr th:data-id="${row.id}" th:data-place="${row.placeCode}" class="row-list-tr" 
-			ondblclick="SelectedDataEditRow(this)">
+		<tr th:data-id="${row.id}" th:data-place="${row.placeCode}" th:data-used="${row.used}" 
+			class="row-list-tr" ondblclick="SelectedDataEditRow(this)">
 			<td th:text="${row.placeName}"></td>
 			<td th:text="${row.sensorCode}"></td>
 			<td th:text="${row.sensorName}"></td>
@@ -272,6 +272,8 @@
 			<td th:text="${(row.displaceVal % 1 == 0) ? row.displaceVal.intValue() : row.displaceVal}" class="val-color-orange"></td>
 			<td th:text="${(row.initialVal % 1 == 0) ? row.initialVal.intValue() : row.initialVal}" class="val-color-gray"></td>
 			<td th:text="${(row.changedVal % 1 == 0) ? row.changedVal.intValue() : row.changedVal}" class="val-color-red"></td>
+			<td><span class="badge" th:classappend="${row.used == '1' ? 'bg-green' : 'bg-red'}" 
+				th:text="${row.used == '1' ? '사용' : '삭제'}"></span></td>
 		</tr>
 	</th:block>
 	
@@ -281,3 +283,12 @@
 		</tr>
 	</th:block>
 </tbody>
+
+
+<select id="transition-sensor">
+	<th:block th:each="sensor : ${sensors}">
+		<option	th:text="${sensor.sensorCode}" th:value="${sensor.sensorId}" 
+			th:data-place="${sensor.placeCode}">
+		</option>
+	</th:block>
+</select>

@@ -152,4 +152,6 @@ public interface SystemMapper {
 	
 	int updateLoggerStatus(@Param("params") Map<String, Object> params);
 	
+	int updateDataStatus(@Param("params") Map<String, Object> params);
+	
 }

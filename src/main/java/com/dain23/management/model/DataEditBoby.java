@@ -19,4 +19,5 @@ public class DataEditBoby {
 	private double displaceVal;
 	private double initialVal;
 	private double changedVal;
+	private String used;
 }

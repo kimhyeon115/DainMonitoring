@@ -22,11 +22,15 @@
 
     <!-- Vendors CSS -->
     <link rel="stylesheet" href="/management/sneat/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.css" />
+	<link href="/common/css/dain.css" rel="stylesheet" />
 	<link th:href="@{/{pageName}/css/main.css(pageName=${model.pageName})}" rel="stylesheet" />
 	<link th:href="@{/{pageName}/css/menu.css(pageName=${model.pageName})}" rel="stylesheet" />
 	
 	<!-- icons -->
 	<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+	
+	<!-- Google Charts -->
+	<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 	
     <!-- Helpers -->
     <script src="/management/sneat/assets/vendor/js/helpers.js"></script>
@@ -130,8 +134,23 @@
 																			th:data-installdt="${logger.installDt}" 
 																			th:data-cdmano="${logger.cdmaNo}" 
 																			th:data-pcid="${logger.pcId}"
-																		>Edit</a>
-																		<a class="dropdown-item" href="#" onclick="loggerDetails(this, event)">Details</a>
+																		>편집</a>
+																		<a class="dropdown-item" href="#" 
+																			th:data-logger-id="${logger.loggerId}" 
+																			th:data-logger-code="${logger.loggerCode}" 
+																			th:data-place-id="${company.placeId}" 
+																			th:data-place-code="${company.placeCode}" 
+																			th:data-version="${company.oldVersion}" 
+																			th:data-cycle="${logger.cycleCheck}" 
+																			onclick="loggerAalysis(this, event)">분석</a>
+																		<a class="dropdown-item" href="#" 
+																			th:data-logger-id="${logger.loggerId}"
+																			th:data-logger-code="${logger.loggerCode}" 
+																			th:data-place-id="${company.placeId}" 
+																			th:data-place-code="${company.placeCode}" 
+																			th:data-version="${company.oldVersion}" 
+																			th:data-cycle="${logger.cycleCheck}" 
+																			onclick="loggerTransition(this, event)">추이</a>
 																	</div>
 																</div>
 															</td>
@@ -180,10 +199,75 @@
 		  <button type="button" class="btn btn-secondary" onclick="editCancel()">취소</button>
 		</div>
 	</div>
+	<div class="transition-form d-none">
+		<div class="mb-4 text-center">
+			<h4><span>실제 수집값 추이 그래프</span></h4>
+		</div>
+		<div class="d-flex gap-3 mb-3 align-items-center justify-content-sm-between">
+			<div class="d-flex gap-3 align-items-center">
+				<div><strong>센서 코드 :</strong></div>
+				<select class="form-select val-color-blue" id="transition-sensor" onchange="SelectTransitionChartDate(this)">
+	            </select>
+			</div>
+			<div class="d-flex gap-3 align-items-center">
+				<div><strong>로거 코드 :</strong></div>
+				<div><strong id="transition-logger" class="val-color-blue"></strong></div>
+			</div>
+		</div>
+		<div id='chart' style="height: 400px; border: 1px solid #ccc;padding:5px;"></div>
+		<div class="d-flex justify-content-end">
+		    <button type="button" class="btn btn-secondary mt-4" onclick="closeTransitionForm()">닫기</button>
+		</div>
+	</div>
+	<div class="analysis-form d-none">
+		<div class="mb-4 text-center">
+			<h4><span>계측 상태 분석</span></h4>
+		</div>
+		<div class="d-flex gap-3 mb-3 align-items-center justify-content-sm-between">
+			<div class="d-flex gap-3 align-items-center">
+				<div><strong>센서 코드 :</strong></div>
+				<select class="form-select val-color-blue" id="analysis-sensor" onchange="SelectAnalysisChartDate()">
+	            </select>
+			</div>
+			<div class="d-flex gap-3 align-items-center">
+				<div><strong>로거 코드 :</strong></div>
+				<div><strong id="analysis-logger" class="val-color-blue"></strong></div>
+			</div>
+		</div>
+		<div class="d-flex gap-3 align-items-center">
+			<div>
+				<div id="analysis-chart-today" class="pie-chart mb-3"></div>
+				<div id="analysis-chart-total"  class="pie-chart"></div>
+			</div>
+			<div class="analysis-table">
+				<table class="table">
+					<thead class="analysis-table-thead">
+						<tr>
+							<th style="width: 38%;">측정일시</th>
+							<th style="width: 17%;">측정값</th>
+							<th style="width: 25%;">상태</th>
+						</tr>
+					</thead>
+					<tbody id="analysis-table-tbody"></tbody>
+				</table>
+			</div>
+		</div>
+		<div class="d-flex justify-content-end">
+		    <button type="button" class="btn btn-secondary mt-4" onclick="closeAnalysisForm()">닫기</button>
+		</div>
+	</div>
 	
 	<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1080">
 		<div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="3000">
 			<div class="toast-body"></div>
+		</div>
+	</div>
+	
+	<!-- 로딩 -->
+	<div id="loadingOverlay">
+		<div class="loading-content">
+			<img src="/common/images/loading.png" alt="Loading..." class="rotate" />
+			<p id="loading-message" class="loading-text mt-3" style="color: #206bc4; font-weight: 500;"></p>
 		</div>
 	</div>
 	
@@ -204,6 +288,7 @@
 	
 	<!-- js 파일 -->
 	<script type="text/javascript" th:src="@{/{pageName}/js/main.js(pageName=${model.pageName})}"></script>
+	<script type="text/javascript" src="/common/js/drawGoogleChart.js"></script>
 </body>
 
 </html>

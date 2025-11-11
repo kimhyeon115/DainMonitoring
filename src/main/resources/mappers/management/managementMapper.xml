@@ -24,6 +24,7 @@
 			dp.short_name
 	</select>
 	
+	
 	<select id="selectPlaceLogger" resultType="String">
 		SELECT 
 			code  
@@ -36,6 +37,7 @@
 			code ASC
 	</select>
 	
+	
 	<select id="selectLoggerStatus" resultType="LoggerStatus">
 	    SELECT 
 	    	dl.id AS loggerId,
@@ -45,6 +47,7 @@
 			dl.cdma_no,
 			dl.install_dt,
 			dl.uploaded_at,
+			dl.cycle_check,
 			dc.id AS pcId,
 			dc.name AS pcName 
 		FROM dain_logger dl 
@@ -54,6 +57,7 @@
 			dl.code = #{loggerCode}
 			AND dl.used = true
 	</select>
+	
 	
 	<update id="updateLoggerInfo">
 		UPDATE 
@@ -67,9 +71,11 @@
 			code = #{params.code}
 	</update>
 	
+	
 	<update id="updateOpenOrClose">
 		UPDATE dain_place SET open = #{params.open} WHERE id = #{params.id};
 	</update>
+	
 	
 	<select id="selectLoggerDetail" resultType="Map">
 		SELECT 
@@ -89,6 +95,95 @@
 		JOIN dain_computer dc 
 			ON dc.id = dl.computer_id
 		ORDER BY dl.used DESC, dp.short_name, dl.code
+	</select>
+	
+	
+	<select id="findSensorInLogger" resultType="Map">
+		SELECT 
+			ds.id AS sensorId
+			,ds.code AS sensorCode
+			,dp.code AS placeCode
+			,dl.cycle_check AS cycle
+		FROM dain_sensor ds
+		JOIN dain_place dp 
+			ON dp.id = ds.place_id 
+		JOIN dain_sensor_type dst 
+			ON dst.id = ds.sensor_type_id 
+		JOIN dain_logger dl 
+			ON dl.id = ds.logger_id 
+		WHERE 
+			ds.logger_id = #{params.loggerId} 
+			AND ds.used = true 
+			AND dst.id NOT IN (5, 6) 
+		ORDER BY 
+			ds.name
+	</select>
+	
+	
+	<select id="selectTransitionData" resultType="Map">
+		SELECT 
+		    measured_at AS date
+		    ,ROUND(raw_val, 3) AS raw
+		FROM data_${params.placeCode}
+		WHERE 
+			sensor_id = #{params.sensorId}
+			AND raw_val != 0
+			AND used = true 
+		ORDER BY
+		    date;
+	</select>
+	
+	
+	<select id="selectAvgTransitionData" resultType="Map">
+		SELECT 
+		    DATE(measured_at) AS date
+		    ,ROUND(AVG(raw_val), 3) AS raw
+		FROM data_${params.placeCode}
+		WHERE 
+			sensor_id = #{params.sensorId}
+			AND raw_val != 0
+			AND used = true 
+		GROUP BY 
+		    date
+		ORDER BY
+		    date;
+	</select>
+	
+	
+	<select id="countSensorDataRows">
+		SELECT 
+			COUNT(*) 
+		FROM data_${params.placeCode} 
+		WHERE 
+			sensor_id = #{params.sensorId}
+			AND used = true
+	</select>
+	
+	
+	<select id="selectAnalysisData" resultType="Map">
+		SELECT
+		    SUM(CASE WHEN raw_val != 0 THEN 1 ELSE 0 END) AS total_success
+		    ,SUM(CASE WHEN raw_val = 0 THEN 1 ELSE 0 END) AS total_fail
+		    ,SUM(CASE WHEN DATE(measured_at) = CURDATE() AND raw_val != 0 THEN 1 ELSE 0 END) AS today_success
+		    ,SUM(CASE WHEN DATE(measured_at) = CURDATE() AND raw_val = 0 THEN 1 ELSE 0 END) AS today_fail
+		FROM
+		    data_${params.placeCode}
+		WHERE
+		    sensor_id = #{params.sensorId}
+	</select>
+	
+	
+	<select id="selectFailRecord" resultType="Map">
+		SELECT 
+			DATE_FORMAT(measured_at, '%Y-%m-%d %H:%i:%s') AS measured
+			,raw_val AS raw
+			,'실패' AS status
+		FROM data_${params.placeCode} 
+		WHERE 
+			raw_val = 0
+			AND sensor_id = #{params.sensorId}
+		ORDER BY 
+			measured_at DESC
 	</select>
 	
 </mapper>

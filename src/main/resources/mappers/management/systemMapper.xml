@@ -1059,6 +1059,7 @@
 			,ROUND(dd.displace_val, 3) AS displace_val
 			,ROUND(dd.initial_val, 3) AS initial_val
 			,ROUND(dd.changed_val, 3) AS changed_val
+			,dd.used
 		FROM data_${params.placeCode} dd
 		JOIN dain_sensor ds
 			ON ds.id = dd.sensor_id
@@ -1067,10 +1068,9 @@
 		JOIN dain_place dp 
 			ON dp.id = dl.place_id 
 		WHERE
-			dd.measured_at >= #{params.searchFrom}
-			AND dd.measured_at <![CDATA[<=]]> #{params.searchTo}
+			DATE(dd.measured_at) = #{params.search}
 			AND dd.sensor_id = #{params.sensorId}
-			AND dd.used = true
+			AND dd.used = #{params.used}
 		ORDER BY 
 			dd.measured_at DESC
 	</select>
@@ -1206,6 +1206,11 @@
 	
 	<update id="updateLoggerStatus">
 		UPDATE dain_logger SET run = #{params.run} WHERE id = #{params.loggerId}
+	</update>
+	
+	
+	<update id="updateDataStatus">
+		UPDATE data_${params.place} SET used = true WHERE id = #{params.id}
 	</update>
 
 </mapper>

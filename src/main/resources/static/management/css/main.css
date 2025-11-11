@@ -102,9 +102,54 @@
   transform: translate(-50%, -50%);
   background: white; /* 배경색 지정 (선택) */
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* 그림자 효과 (선택) */
-  padding: 20px; /* 안쪽 여백 (선택) */
+  padding: 25px; /* 안쪽 여백 (선택) */
   z-index: 10000; /* 다른 요소 위에 띄우고 싶을 경우 */
   border-radius: 10px;
+}
+
+.transition-form {
+  width: 1200px;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white; /* 배경색 지정 (선택) */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* 그림자 효과 (선택) */
+  padding: 30px 50px; /* 안쪽 여백 (선택) */
+  z-index: 10000; /* 다른 요소 위에 띄우고 싶을 경우 */
+  border-radius: 10px;
+}
+
+.analysis-form {
+  width: 1000px;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white; /* 배경색 지정 (선택) */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* 그림자 효과 (선택) */
+  padding: 30px 50px; /* 안쪽 여백 (선택) */
+  z-index: 10000; /* 다른 요소 위에 띄우고 싶을 경우 */
+  border-radius: 10px;
+}
+
+.pie-chart {
+	width: 400px;
+	height: 250px;
+	border: 1px solid #ccc;
+	padding:5px;
+}
+
+.analysis-table {
+	width: 500px;
+	height: 516px;
+	border: 1px solid #ccc;
+	padding:5px;
+	overflow-y: auto;
+}
+
+.analysis-table-thead {
+	background-color: #233446;
 }
 
 .edit-form.d-none {
@@ -191,6 +236,11 @@
     text-decoration: none;
 }
 
+.val-color-blue {
+	color: #5B62F4;
+	font-weight: 700;
+}
+
 #scrollTopBtn {
   position: fixed;
   top: 20px;
@@ -223,8 +273,11 @@
   box-shadow: 0 2px 6px rgba(0,0,0,0.3);
 }
 
+#transition-sensor, #analysis-sensor {
+	width: 180px;
+}
+
 #scrollTopBtn:hover,
 #clientDownBtn:hover {
   background-color: #555;
 }
-

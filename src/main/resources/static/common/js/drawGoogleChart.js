@@ -405,3 +405,145 @@ function noGraph(chartId) {
 		$(`#${chartId}`).hide();
 	});
 }
+
+
+/* 추이 라인 차트 */
+function transitionChart(column, row, min, max) {
+	
+    google.charts.load('current', {'packages': ['corechart']});
+    google.charts.setOnLoadCallback(function() {
+		
+        let options = {
+            width: '100%',
+            height: '100%',
+            legend: {
+				position: "top",
+				maxLines: 2,
+				alignment: "end",
+				textStyle: {
+					fontSize: 9
+				}
+			},
+            chartArea: {
+				top: 50,
+				bottom: 40,
+				left: 50,
+				right: 35
+			},
+            hAxis: {
+                format: 'yyyy-MM-dd HH:mm',
+                textStyle: {
+					color: '#000',
+					fontName: 'Arial',
+					fontSize: 9
+				},
+            },
+            vAxes: {
+                0: {
+                    viewWindow: {
+						min: min,
+						max: max
+					},
+                    textStyle: {
+						color: '#000',
+						fontName: 'Arial',
+						fontSize: 9
+					},
+                    titleTextStyle: {
+						color: '#000',
+						fontName: 'Arial',
+						italic: false,
+						fontSize: 9
+					},
+                },
+            },
+			series: {
+                0: {color: '#4C3BCF',lineWidth: 3}
+            },
+        };
+		
+        let data = new google.visualization.DataTable();		
+        column.forEach(col => data.addColumn(col.type, col.label));
+        data.addRows(row);
+
+        let chart = new google.visualization.LineChart(document.getElementById('chart'));
+        chart.draw(data, options);
+    });
+}
+
+
+/* 추이 막대 차트 */
+function transitionColumnChart(column, row, max) {
+	
+	google.charts.load('current',{'packages':['corechart']});
+    google.charts.setOnLoadCallback(function() {
+
+        let options = {
+            width:'100%',height:'100%',
+            legend: { position: "none", maxLines:2, alignment:"end", textStyle: {fontSize: 9}},
+            chartArea: {top: 50, bottom: 30, left: 50, right: 40},
+            hAxis: {
+                format:'yyyy-MM-dd HH:mm',
+                textStyle: {color: '#000', 
+                fontName: 'Arial',fontSize: 9},
+            },
+            vAxis: {
+                title:'kine',
+                viewWindow: {min: 0, max: max},
+                textStyle: {color: '#000', fontName: 'Arial',fontSize: 9},
+                titleTextStyle: {color: '#000',fontName: 'Arial',italic:false, fontSize: 9}
+            },
+			series: {
+                0: {color: '#4C3BCF',lineWidth: 3}
+            },
+            bar: {groupWidth: 5}
+        };
+		
+
+		let data = new google.visualization.DataTable();
+		column.forEach(col => data.addColumn(col.type, col.label));
+		data.addRows(row);
+		
+        let chart = new google.visualization.ColumnChart(document.getElementById('chart'));
+        chart.draw(data, options);
+	});
+}
+
+
+/* 분석 파이 차트 */
+function analysisPieChart(chartData, chartId, type) {
+	
+	const ratio = 0.0006;
+	const success = chartData[1][1];
+	const fail = chartData[2][1];
+	const total = fail + success;
+	
+	let failRatio = 0;
+	if (success != 0 && fail != 0) {
+		failRatio = fail / total;
+		if (failRatio < ratio) {
+			chartData[2][1] = total * ratio;
+		}
+	}
+	
+	google.charts.load("current", {packages:["corechart"]});
+	google.charts.setOnLoadCallback(function() {
+
+		let data = new google.visualization.arrayToDataTable(chartData);
+		
+		let options = {
+			is3D: true,
+			title: `${type} 분석 그래프`,
+			tooltip: { trigger: 'none' },
+			colors: ['#5B62F4', '#f76707'],
+			sliceVisibilityThreshold: 0,
+			chartArea: {
+				left: 55, top: 45,
+				width: '85%', height: '85%'
+			}
+		};
+		
+		let chart = new google.visualization.PieChart(document.getElementById(chartId));
+		chart.draw(data, options);
+	});
+}

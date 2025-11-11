@@ -124,7 +124,7 @@
 	<div class="card">
 		<div class="table-title">
 			<div>
-				<span class="table-title-text">Move, copy and backup files</span>
+				<span class="table-title-text">파일 이동 관련, 설정 정보</span>
 			</div>
 			<div class="d-flex gap-3 align-items-center">
 				<div><strong>검색 조건</strong></div>
@@ -138,6 +138,11 @@
 					<option value="">전체</option>
 					<option th:each="code : ${selectParsingCode}" th:value="${code.idx}" th:text="${code.text}"></option>
 				</select>
+			</div>
+			<div class="d-flex gap-3 align-items-center">
+				<a href="http://192.168.0.125:1880/#flow/02d19ea49477900b" role="button" target="_blank">
+					<span class="company-korname tooltip-icon" data-tooltip="회사 내부망에서만 접근 가능">파일 이동 실행 바로가기</span>
+				</a>
 			</div>
 		</div>
 		<div class="table-responsive">

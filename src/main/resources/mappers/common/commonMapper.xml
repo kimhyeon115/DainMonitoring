@@ -103,6 +103,7 @@
 			AND dl.cycle_check = true
 			AND ds.used = true
 			AND dst.id != 1
+			AND d.used = true
     </select>
     
     
@@ -150,6 +151,7 @@
 			AND dsts.hidden = false
 			AND ds.used = true
 			AND dst.id != 1
+			AND d.used = true
     </select>
     
     
