@@ -173,16 +173,41 @@ public class GroupingData {
 	 
 	/* 로거ID 기준 그룹 배열화 */ 
 	public static List<List<Map<String, Object>>> groupSystemNavigation(List<Map<String, Object>> navigation) { 
-		Map<Integer, List<Map<String, Object>>> grouped = navigation.stream() 
-			.collect(Collectors.groupingBy(m -> (Integer) m.get("logger_id"))); 
-		
-		List<List<Map<String, Object>>> result = grouped.values().stream() 
-			.map(group -> group.stream() 
-				.sorted(Comparator.comparing(m -> (String) m.get("sensor_code"))) 
-				.collect(Collectors.toList())) 
-			.collect(Collectors.toList());
-		
-		return result; 
+        Map<Integer, List<Map<String, Object>>> grouped = navigation.stream() 
+            .collect(Collectors.groupingBy(m -> (Integer) m.get("logger_id"))); 
+        
+        List<List<Map<String, Object>>> sortedGroups = grouped.values().stream() 
+            .map(group -> group.stream() 
+                .sorted(Comparator.comparing((Map<String, Object> m) -> {
+                    String code = (String) m.get("sensor_code");
+                    if (code == null || code.indexOf('_') == -1) {
+                        return "ZZZ";
+                    }
+                    return code.substring(0, code.indexOf('_')); 
+                })
+                .thenComparingInt(m -> {
+                    String code = (String) m.get("sensor_code");
+                    try {
+                        int start = code.indexOf('_') + 1;
+                        int end = code.lastIndexOf('_');
+                        String numberPart = (end != -1 && end > start) ? code.substring(start, end) : code.substring(start);
+                        
+                        return Integer.parseInt(numberPart);
+                    } catch (Exception e) {
+                        return Integer.MAX_VALUE; 
+                    }
+                })
+                .thenComparing(m -> (String) m.get("sensor_code")))
+            .collect(Collectors.toList())) 
+            .collect(Collectors.toList());
+
+        List<List<Map<String, Object>>> result = sortedGroups.stream()
+            .sorted(Comparator.comparing(group -> {
+                return (String) group.get(0).get("logger_code");
+            }))
+            .collect(Collectors.toList());
+
+        return result;
 	}
 	
 	
@@ -209,6 +234,7 @@ public class GroupingData {
 	
 	/* 가장 첫번째 레코드의 측정일시의 시분초가 동일한 레코드들만 추출 및 내림차순 정렬 */
 	public static List<Map<String, Object>> processAndFilter(List<Map<String, Object>> data) {
+		
 	    if (data == null || data.isEmpty()) {
 	        return Collections.emptyList();
 	    }

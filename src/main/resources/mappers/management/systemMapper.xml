@@ -602,11 +602,11 @@
 			dsac.id
 			,dci.target_column
 			,dci.formula
-			,TRIM(TRAILING '.' FROM TRIM(TRAILING '0' FROM MAX(CASE WHEN dcp.param_key = 'A' THEN dcp.param_value ELSE 0 END))) AS A
-			,TRIM(TRAILING '.' FROM TRIM(TRAILING '0' FROM MAX(CASE WHEN dcp.param_key = 'B' THEN dcp.param_value ELSE 0 END))) AS B
-			,TRIM(TRAILING '.' FROM TRIM(TRAILING '0' FROM MAX(CASE WHEN dcp.param_key = 'C' THEN dcp.param_value ELSE 0 END))) AS C
-			,TRIM(TRAILING '.' FROM TRIM(TRAILING '0' FROM MAX(CASE WHEN dcp.param_key = 'D' THEN dcp.param_value ELSE 0 END))) AS D
-			,TRIM(TRAILING '.' FROM TRIM(TRAILING '0' FROM MAX(CASE WHEN dcp.param_key = 'E' THEN dcp.param_value ELSE 0 END))) AS E
+			,IFNULL(MAX(CASE WHEN dcp.param_key = 'A' THEN CAST(dcp.param_value AS CHAR) END), '0') AS A
+			,IFNULL(MAX(CASE WHEN dcp.param_key = 'B' THEN CAST(dcp.param_value AS CHAR) END), '0') AS B
+			,IFNULL(MAX(CASE WHEN dcp.param_key = 'C' THEN CAST(dcp.param_value AS CHAR) END), '0') AS C
+			,IFNULL(MAX(CASE WHEN dcp.param_key = 'D' THEN CAST(dcp.param_value AS CHAR) END), '0') AS D
+			,IFNULL(MAX(CASE WHEN dcp.param_key = 'E' THEN CAST(dcp.param_value AS CHAR) END), '0') AS E
 			,DATE_FORMAT(dsac.from_dt, '%Y-%m-%d %H:%i:%s') AS from_dt
 		    ,IFNULL(DATE_FORMAT(dsac.to_dt, '%Y-%m-%d %H:%i:%s'), '무기한') AS to_dt
 		FROM dain_sensor_apply_calculation dsac 

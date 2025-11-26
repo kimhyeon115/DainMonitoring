@@ -37,16 +37,16 @@ public class WebConfig implements WebMvcConfigurer {
 
         /* 사이트별 기본 페이지 & 패치 페이지 */
         "/*/",
-        "/management/css", 
-        "/management/js", 
+        "/management/css",
+        "/management/js",
         "/management/sneat",
         
         /* 문화재 페이지 */
-        "/cheomseongdae/**", 
-        "/cheongpung/**", 
-        "/ddm/**", 
-        "/geunjeongjeon/**", 
-        "/jungdong/**",
+        "/cheomseongdae/**",
+        "/cheongpung/**",
+        "/ddm/**",
+        "/geunjeongjeon/**",
+        "/magoksa/**",
         
         /* 개발 테스트 */
         "/development/**"

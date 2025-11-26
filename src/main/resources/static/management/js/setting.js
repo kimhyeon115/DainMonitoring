@@ -999,7 +999,7 @@ async function SelectedSensorLi(el) {
 async function InsertDmsSensorApplyCalculation() {
 	const result = DmsSensorApplyCalculationFormValidation();
 	if (typeof result === 'string') return showMessage(result);
-	console.log(result);
+	
 	try {
 		loadingScreen(true, '기간 내 데이터 계산식 적용 중...');
 		await new Promise(resolve => setTimeout(resolve, 1000))
@@ -1061,7 +1061,7 @@ function DmsSensorApplyCalculationFormValidation() {
 	}
 	
 	if (diffMonths > 6) {
-	    if (to_dt == null) {
+	    if (toDt == null) {
 	        return '[적용 종료일시] 미기입 시 [적용 시작일시]는\n' +
 	               '현재 시점으로부터 6개월 이내만 설정할 수 있습니다.\n\n' +
 	               '※기간이 길 경우 여러 건으로 나누어 등록하세요.';
@@ -1130,15 +1130,23 @@ function DmsSensorApplyCalculationFormValidation() {
 
 /* DMS | 센서정보 적용 계산식 테이블 대입값 적용 */
 function setCalculationOfParam() {
+	
+	function trimTrailingZeros(numStr) {
+        if (!numStr || numStr.indexOf('.') === -1) {
+            return numStr;
+        }
+        return numStr.replace(/(\.0*|0+)$/, ''); 
+    }
+	
 	$('#apply-calculation-body tr').each(function () {
 		const $tr = $(this);
 	    const data = $tr.data();
 	    const params = {
-	        A: data.param_a,
-	        B: data.param_b,
-	        C: data.param_c,
-	        D: data.param_d,
-	        E: data.param_e
+			A: trimTrailingZeros(data.param_a),
+	        B: trimTrailingZeros(data.param_b),
+	        C: trimTrailingZeros(data.param_c),
+	        D: trimTrailingZeros(data.param_d),
+	        E: trimTrailingZeros(data.param_e)
 	    };
 
 	    let formula = data.formula.replace(/\b[A-E]\b/g, match => params[match] ?? match);

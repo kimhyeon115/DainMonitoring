@@ -103,7 +103,7 @@ public class CommonAPIServiceImpl implements CommonAPIService {
 					placeCode, sensors, body.getStart(), body.getEnd(), valName, 
 					body.getLimit(), body.getOffset(),body.isAverage(), body.isOclock(), body.isExcel()
 				);
-				
+
 				if (!selectParts[1].equals("total")) data = ModulateData.accumulateRowValues(data);
 				result.put("sensorBodyData", data);
 

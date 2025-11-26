@@ -15,6 +15,16 @@ function formatDate(date) {
 }
 
 
+/* 두개 날짜 차이 일수 */
+function getDateDiffInDays(startDate, endDate) {
+    const startDt = new Date(startDate);
+    const endDt = new Date(endDate);
+    const diffTime = Math.abs(endDt - startDt);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
+}
+
+
 /* 렌더링 이후 실행 함수 */
 $(document).ready(function() {
 	
@@ -101,11 +111,15 @@ $(document).ready(function() {
 	
 	/* 요청 파라미터 정의 */
 	function getParam() {
+		const start = $('#start').val();
+		const end = $('#end').val();
+		
 		let body = {
-	       start: $('#start').val() + ' 00:00:00',
-	       end: $('#end').val() + ' 23:59:59',
+	       start: start + ' 00:00:00',
+	       end: end + ' 23:59:59',
 	       average: $('#average').is(':checked'),
-	       oclock: $('#oclock').is(':checked')
+	       oclock: $('#oclock').is(':checked'),
+		   days: getDateDiffInDays(start, end) + 1
 	    };
 		return body;
 	}
@@ -133,8 +147,9 @@ $(document).ready(function() {
 			param.offset = offset;
 			param.limit = limit;
 		} else {
+			const cumulative = param.select.split(':')[1] == 'graph';
 			offset = 0;
-			limit = 100;
+			limit = cumulative ? param.days * 24 : 100;
 			param.offset = offset;
 			param.limit = limit;
 		}
@@ -342,7 +357,7 @@ function replaceCumulativeTableData(data) {
 	
 	const headerTr = $('<tr>');
 	data[0].forEach(col => {
-		headerTr.append(`<th class="text-center" style="min-width: 70px"><strong>${col.replace(' ', '<br>')}</strong></th>`);
+		headerTr.append(`<th class="text-center" style="min-width: 100px"><strong>${col.replace(' ', '<br>')}</strong></th>`);
 	});
 	thead.append(headerTr);	
 

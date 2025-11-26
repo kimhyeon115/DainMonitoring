@@ -141,6 +141,24 @@ const TableSet = {
 					'angle_val',
 					'changed_val',
 					'angular_txt'
+				],
+				WireDisplacement: [
+					'measured_at',
+					'correction_val',
+					'displace_val',
+					'changed_val'
+				],
+				VWStrainGauge: [
+					'measured_at',
+					'correction_val',
+					'displace_val',
+					'changed_val'
+				],
+				LVDT: [
+					'measured_at',
+					'correction_val',
+					'displace_val',
+					'changed_val'
 				]
 			},
 			column: {
@@ -240,6 +258,24 @@ const TableSet = {
 					angle_val: '각도(°)',
 					changed_val: '변화량(mm)',
 					angular_txt: '각변위'
+				},
+				WireDisplacement: {
+					measured_at: '측정일시',
+					correction_val: '측정값(mv)',
+					displace_val: '변위(mm)',
+					changed_val: '변화량(mm)'
+				},
+				VWStrainGauge: {
+					measured_at: '측정일시',
+					correction_val: '측정값(mv)',
+					displace_val: '변위(mm)',
+					changed_val: '변화량(mm)'
+				},
+				LVDT: {
+					measured_at: '측정일시',
+					correction_val: '측정값(mv)',
+					displace_val: '변위(mm)',
+					changed_val: '변화량(mm)'
 				}
 			}
 		},
@@ -305,8 +341,9 @@ const TableSet = {
 					'avg_correction_val',
 					'avg_displace_val',
 					'avg_changed_val',
-					'max_changed_val',
-					'min_changed_val'
+					'max_correction_val',
+					'max_displace_val',
+					'max_changed_val'
 				],
 				Displacement: [
 					'measurement_date',
@@ -376,6 +413,33 @@ const TableSet = {
 					'avg_changed_val',
 					'max_angle_val',
 					'max_changed_val'
+				],
+				WireDisplacement: [
+					'measurement_date',
+					'avg_correction_val',
+					'avg_displace_val',
+					'avg_changed_val',
+					'max_correction_val',
+					'max_displace_val',
+					'max_changed_val'
+				],
+				VWStrainGauge: [
+					'measurement_date',
+					'avg_correction_val',
+					'avg_displace_val',
+					'avg_changed_val',
+					'max_correction_val',
+					'max_displace_val',
+					'max_changed_val'
+				],
+				LVDT: [
+					'measurement_date',
+					'avg_correction_val',
+					'avg_displace_val',
+					'avg_changed_val',
+					'max_correction_val',
+					'max_displace_val',
+					'max_changed_val'
 				]
 			},
 			column: {
@@ -439,8 +503,9 @@ const TableSet = {
 					avg_correction_val: '평균 측정값(mv)',
 					avg_displace_val: '평균 변위(°)',
 					avg_changed_val: '평균 변화량(°)',
-					max_changed_val: '최대 변화량(°)',
-					min_changed_val: '최소 변화량(°)'
+					max_correction_val: '최대 측정값(mm)',
+					max_displace_val: '최대 변위(°)',
+					max_changed_val: '최대 변화량(°)'
 				},
 				Displacement: {
 					measurement_date: '날짜',
@@ -509,6 +574,33 @@ const TableSet = {
 					avg_angle_val: '평균 각도(°)',
 					avg_changed_val: '평균 변화량(mm)',
 					max_angle_val: '최대 각도(°)',
+					max_changed_val: '최대 변화량(mm)'
+				},
+				WireDisplacement: {
+					measurement_date: '날짜',
+					avg_correction_val: '평균 측정값(mm)',
+					avg_displace_val: '평균 변위(mm)',
+					avg_changed_val: '평균 변화량(mm)',
+					max_correction_val: '최대 측정값(mm)',
+					max_displace_val: '최대 변위(mm)',
+					max_changed_val: '최대 변화량(mm)'
+				},
+				VWStrainGauge: {
+					measurement_date: '날짜',
+					avg_correction_val: '평균 측정값(mm)',
+					avg_displace_val: '평균 변위(mm)',
+					avg_changed_val: '평균 변화량(mm)',
+					max_correction_val: '최대 측정값(mm)',
+					max_displace_val: '최대 변위(mm)',
+					max_changed_val: '최대 변화량(mm)'
+				},
+				LVDT: {
+					measurement_date: '날짜',
+					avg_correction_val: '평균 측정값(mm)',
+					avg_displace_val: '평균 변위(mm)',
+					avg_changed_val: '평균 변화량(mm)',
+					max_correction_val: '최대 측정값(mm)',
+					max_displace_val: '최대 변위(mm)',
 					max_changed_val: '최대 변화량(mm)'
 				}
 			}

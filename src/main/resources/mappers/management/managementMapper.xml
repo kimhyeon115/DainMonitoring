@@ -162,14 +162,20 @@
 	
 	<select id="selectAnalysisData" resultType="Map">
 		SELECT
-		    SUM(CASE WHEN raw_val != 0 THEN 1 ELSE 0 END) AS total_success
-		    ,SUM(CASE WHEN raw_val = 0 THEN 1 ELSE 0 END) AS total_fail
-		    ,SUM(CASE WHEN DATE(measured_at) = CURDATE() AND raw_val != 0 THEN 1 ELSE 0 END) AS today_success
-		    ,SUM(CASE WHEN DATE(measured_at) = CURDATE() AND raw_val = 0 THEN 1 ELSE 0 END) AS today_fail
-		FROM
-		    data_${params.placeCode}
-		WHERE
-		    sensor_id = #{params.sensorId}
+		    SUM(raw_val != 0) AS total_success,
+		    SUM(raw_val = 0)  AS total_fail,
+		    SUM(
+		        (measured_at >= CURDATE())
+		        AND (measured_at <![CDATA[<]]> CURDATE() + INTERVAL 1 DAY)
+		        AND (raw_val != 0)
+		    ) AS today_success,
+		    SUM(
+		        (measured_at >= CURDATE())
+		        AND (measured_at <![CDATA[<]]> CURDATE() + INTERVAL 1 DAY)
+		        AND (raw_val = 0)
+		    ) AS today_fail
+		FROM data_${params.placeCode}
+		WHERE sensor_id = #{params.sensorId}
 	</select>
 	
 	
@@ -180,8 +186,8 @@
 			,'실패' AS status
 		FROM data_${params.placeCode} 
 		WHERE 
-			raw_val = 0
-			AND sensor_id = #{params.sensorId}
+			sensor_id = #{params.sensorId}
+			AND raw_val = 0
 		ORDER BY 
 			measured_at DESC
 	</select>

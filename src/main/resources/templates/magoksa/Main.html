@@ -8,6 +8,7 @@
 	<link rel="icon" href="data:,">
 	<link href="/common/css/dain.css" rel="stylesheet" />
 	<link href="/common/css/main.css" rel="stylesheet" />
+	<link href="/magoksa/css/main.css" rel="stylesheet" />
 	<!-- Latest compiled and minified CSS -->
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
 	
@@ -31,6 +32,7 @@
 	<!-- js 파일 -->
 	<script type="text/javascript" src="/common/js/main.js"></script>
 	<script type="text/javascript" src="/common/js/drawGoogleChart.js"></script>
+	<script type="text/javascript" src="/magoksa/js/main.js"></script>
 </head>
 
 <body style="margin-top:10px;" th:data-page-code="${model.place.code}" data-spy="scroll" data-target=".navbar" data-offset="180">
@@ -51,7 +53,6 @@
 			</button>
 			<div class="collapse navbar-collapse" id="myNavbar">
                 <ul class="navbar-nav mr-auto">
-					<li class="nav-item"><a class="nav-link" href="#Location">계측기 설치위치</a></li>
                     <li class="nav-item"><a class="nav-link" href="#part">계측 현황</a></li>
                     <li class="dropdown">
                         <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">
@@ -74,7 +75,7 @@
 					    </a>
 					</li>
                     <li class="nav-item">
-						<a class="nav-link" th:href="@{/{place}/signOut(place=${model.place.code})}">
+						<a class="nav-link" href="http://dain23.iptime.org:8000/nrich/">
 							<i class="fas fa-sign-out-alt"></i> Log out
 						</a>
 					</li>
@@ -93,18 +94,6 @@
 	
 	<!-- 데이터 -->
 	<div class="container">
-		
-		<!-- 설치 위치 -->
-		<div id="Location"></div>
-		<div class="card mb-3">
-			<div class="card-header bg-secondary text-white border border-secondary pb-1">
-				<h5><i class="fas fa-map-marker-alt text-warning"></i>&nbsp&nbsp<small>계측기 설치위치</small></h5>
-			</div>
-			<div class="card-body border border-secondary" style="text-align: center;">
-				<img th:src="@{/{place}/images/map.png(place=${model.place.code})}" alt="계측기 평면도" loading="lazy" 
-					style="display: block; margin: 0px auto; width: 100%; height: 100%;" />
-			</div>
-		</div>
 		
 		<!--현황 파트 -->
 		<div id="part"></div>
@@ -157,145 +146,52 @@
 							<strong th:text="${data[0].sensorTypeName}" class="text-white ml-3"></strong>
 						</div>
 						<div class="row mt-2 mb-3">
-							<div th:class="${data[0].sensorTypeId == 20 || data[0].sensorTypeId == 21} ? 'col-md-12' : 'col-md-6'">
-								<div class="table-responsive">
-									<table class="table table-sm text-center table-bordered table-data">
-										<thead>
-											
-											<tr bgcolor="#eeeeee" th:if="${data[0].sensorTypeId == 2 or data[0].sensorTypeId == 3}">
-												<th class="text-center">센서코드</th>
-												<th class="text-center">설치위치</th>
-												<th class="text-center">변화량(mm)</th>
-											</tr>
-											
-											<tr bgcolor="#eeeeee" th:if="${data[0].sensorTypeId == 19}">
-												<th class="text-center">심도(m)</th>
-												<th class="text-center">식별코드</th>
-												<th class="text-center">누적 변화량(mm)</th>
-											</tr>
-											
-											<tr bgcolor="#eeeeee" th:if="${data[0].sensorTypeId == 15}">
-												<th class="text-center">식별코드</th>
-												<th class="text-center">현재 수위(m)</th>
-												<th class="text-center">초기치 대비 변화량(m)</th>
-											</tr>
-											
-										</thead>
-									    <tbody>
-											
-											<th:block th:each="row : ${data}">
-												<tr th:data-code="${row.sensorCode}" th:data-logger="${logger.id}" th:data-type="${row.sensorTypeId}" 
-													th:if="${row.sensorTypeId == 2 or row.sensorTypeId == 3}" class="sensor-hour-tr">
-												    <td>
-														<a th:href="@{/{place}/data(select=${row.sensorId}, place=${model.place.code})}" 
-															role="button" target="_blank">
-															<strong th:text="${row.sensorCode}"></strong>
-														</a>
-													</td>
-													<td th:text="${row.sensorName}"></td>
-													<td th:text="${row.changedVal}" class="changed-val"></td>
-												</tr>
-											</th:block>
-											
-											<th:block th:each="i : ${#numbers.sequence(0, data.size()-1, 5)}">
-											    <tr th:if="${data[i].sensorTypeId == 20 or data[i].sensorTypeId == 21}">
-											        <th:block th:each="j : ${#numbers.sequence(i, i+4)}" th:if="${j < data.size()}">
-											            <td>
-											                <a th:href="@{/{place}/data(select=${data[j].sensorId}, place=${model.place.code})}" 
-											                   role="button" target="_blank">
-											                    <strong th:text="${data[j].sensorCode}"></strong>
-											                </a>
-											            </td>
-											            <td th:data-code="${data[j].sensorCode}" th:data-logger="${logger.id}" th:data-type="${data[j].sensorTypeId}" 
-															th:text="${data[j].changedVal}" class="sensor-hour-td changed-val"></td>
-											        </th:block>
-											    </tr>
-											</th:block>
-											
-											<th:block th:each="i : ${#numbers.sequence(data.size()-1, 0)}" th:with="row=${data[i]}">
-											    <tr th:data-code="${row.sensorCode}" th:data-logger="${logger.id}" th:data-type="${row.sensorTypeId}" 
-											        th:if="${row.sensorTypeId == 19}" class="sensor-hour-tr">
-											        <td th:text="${row.location}" class="location"></td>
-											        <td>
-											            <a th:href="@{/{place}/data(select=${row.sensorId}, place=${model.place.code})}" 
-											               role="button" target="_blank">
-											                <strong th:text="${row.sensorCode}"></strong>
-											            </a>
-											        </td>
-											        <td th:text="${row.cumulativeVal}" class="cumulative-val"></td>
-											    </tr>
-											</th:block>
-											
-											<th:block th:each="row : ${data}">
-											    <tr th:data-code="${row.sensorCode}" th:data-logger="${logger.id}" th:data-type="${row.sensorTypeId}" 
-													th:if="${row.sensorTypeId == 15}" class="sensor-hour-tr">
-											        <td>
-											            <a th:href="@{/{place}/data(select=${row.sensorId}, place=${model.place.code})}" 
-											               role="button" target="_blank">
-											                <strong th:text="${row.sensorCode}"></strong>
-											            </a>
-											        </td>
-											        <td th:text="${row.displaceVal}" class="displace-val"></td>
-											        <td th:text="${row.changedVal}" class="changed-val"></td>
-											    </tr>
-											</th:block>
-											
-										</tbody>
-									</table>
-								</div>
-							</div>
-							<div th:class="${data[0].sensorTypeId == 20 || data[0].sensorTypeId == 21} ? 'col-md-12' : 'col-md-6'">
-								<div th:id="'graph_' + ${logger.id} + '_' + ${data[0].sensorTypeId}" th:data-type="${data[0].sensorTypeId}"
-									 th:class="${data[0].sensorTypeId == 19} ? 'chart-lasted-type' 
-						                  : (${data[0].sensorTypeId == 20 or data[0].sensorTypeId == 21} ? 'chart-rail-type' 
-						                  : 'chart-cycle-type')"
-								     style="height:340px; border: 1px solid #ccc;">
-								</div>
-							</div>
-						</div>
-					</th:block>
-					
-					<!-- 랜덤 측정 파트 -->
-					<th:block th:each="data, iterStat : ${model.latestEventData[logger.id]}">
-						<div class="type-title">
-							<strong th:text="${data[0].sensorTypeName}" class="text-white ml-3"></strong>
-						</div>
-						<div class="row mt-2 mb-3">
 							<div class="col-md-6">
 								<div class="table-responsive">
 									<table class="table table-sm text-center table-bordered table-data">
 										<thead>
-											<tr bgcolor="#eeeeee">
-												<th class="text-center">센서코드</th>
-												<th class="text-center">최근측정일시</th>
-												<th class="text-center">최근값(kine)</th>
-												<th class="text-center">금일최대값(kine)</th>
-												<th class="text-center">금일회수</th>
+											
+											<tr bgcolor="#eeeeee" th:if="${data[0].sensorTypeId == 9 or data[0].sensorTypeId == 23
+												or data[0].sensorTypeId == 22 or data[0].sensorTypeId == 24}">
+												<th class="text-center">설치위치</th>
+												<th class="text-center">식별코드</th>
+												<th class="text-center">초기값(°)</th>
+												<th class="text-center">현재값(°)</th>
+												<th class="text-center">변화량(°)</th>
 											</tr>
+											
 										</thead>
-									    <tbody>
+									    <tbody th:id="${'tbody_' + data[0].sensorTypeId}">
+											
 											<th:block th:each="row : ${data}">
-												<tr th:data-code="${row.sensorCode}" th:data-logger="${logger.id}" 
-													th:data-type="${row.sensorTypeId}" class="sensor-event-tr">
+												<tr th:data-code="${row.sensorCode}" th:data-logger="${logger.id}" th:data-type="${row.sensorTypeId}" 
+													 th:if="${row.sensorTypeId == 9 or row.sensorTypeId == 23 
+														or row.sensorTypeId == 22 or row.sensorTypeId == 24}" class="sensor-hour-tr">
+													 <td class="init-location">
+														<a class="location-link" th:data-img-url="@{'/magoksa/images/location/' + ${row.sensorCode} + '.png'}" 
+															th:data-location="${row.location}" th:data-img="${row.sensorCode}" onclick="showLocationImg(this)">
+															<strong th:text="${row.location}"></strong>
+														</a>
+													 </td>
 												    <td>
 														<a th:href="@{/{place}/data(select=${row.sensorId}, place=${model.place.code})}" role="button" target="_blank">
 															<strong th:text="${row.sensorCode}"></strong>
 														</a>
 													</td>
-													<td th:text="${row.lastMeasuredAt}" class="last-measure-at"></td>
-													<td th:text="${row.changedVal}" class="displace-val"></td>
-													<td th:text="${row.maxChangedVal}" class="max-displace-val"></td>
-													<td th:text="${row.todayDataCount}" class="today-data-count"></td>
+													<td th:text="${row.initialVal}" class="initial-val integer-cut"></td>
+													<td th:text="${row.displaceVal}" class="displace-val integer-cut"></td>
+													<td th:text="${row.changedVal}" class="changed-val integer-cut"></td>
 												</tr>
 											</th:block>
+											
 										</tbody>
 									</table>
 								</div>
 							</div>
 							<div class="col-md-6">
-								<div th:id="'graph_' + ${logger.id} + '_' + ${data[0].sensorTypeId}" 
-									th:data-type="${data[0].sensorTypeId}" class="chart-event-type" 
-									style="height:340px; border: 1px solid #ccc;">
+								<div th:id="'graph_' + ${logger.id} + '_' + ${data[0].sensorTypeId}" th:data-type="${data[0].sensorTypeId}"
+								     th:class="${data[0].sensorTypeId != 19} ? ' chart-cycle-type' : ' chart-lasted-type'"
+								     style="height:340px; border: 1px solid #ccc;">
 								</div>
 							</div>
 						</div>
@@ -305,6 +201,17 @@
 			</div>
 		</th:block>
 		
+	</div>
+	
+	<!-- 이미지 팝업 오버레이 -->
+	<div id="imgPopupOverlay" class="img-popup-overlay" onclick="closeImgPopup(event)">
+		<div id="imgPopupContent" class="img-popup-content">
+			<div class="imgPopupTitle">
+				<div id="location-name" class="popup-title"></div>
+				<div id="sensor-name" class="popup-title"></div>
+			</div>
+			<img id="popupImage" src="" alt="Location Image" class="img-popup-image">
+		</div>
 	</div>
 	
 	<!-- 푸터 -->
