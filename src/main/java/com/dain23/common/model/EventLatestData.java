@@ -18,6 +18,8 @@ public class EventLatestData implements LatestData {
 	private String maxChangedVal;
 	private String todayDataCount;
 	private int groupOrder;
+	private String todayChangedSum;
+	private String totalChangedSum;
 	
 	private String changedVal;
     private BigDecimal cumulativeVal;

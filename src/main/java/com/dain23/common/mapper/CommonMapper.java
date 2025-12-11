@@ -73,6 +73,12 @@ public interface CommonMapper {
 		@Param("start") String start, @Param("end") String end
 	);
 	
+	double initializeRunningTotal(
+		@Param("placeCode") String placeCode,
+		@Param("sensorId") int sensorId,
+		@Param("start") String start
+	);
+	
 	List<Map<String, Object>> findSensorEventMaxAvgData(
 		@Param("placeCode") String placeCode, @Param("sensorId") int sensorId, 
 		@Param("start") String start, @Param("end") String end,	

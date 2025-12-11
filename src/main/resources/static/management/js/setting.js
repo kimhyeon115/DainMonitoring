@@ -335,6 +335,7 @@ async function ComboChangePostMethod() {
 		$('#sensor-type-ul').html($parsed.find('#sensor-type-ul').html());
 		$('#sensor-type-place-ul').html($parsed.find('#sensor-type-place-ul').html());
 		$('#calculation-ul').html($parsed.find('#calculation-ul').html());
+		$('#sensor-apply-calculation').html($parsed.find('#sensor-apply-calculation').html());
 	} catch (e) {
 		console.error(e);
 		showMessage("서버와의 연결에 문제가 발생했습니다. (네트워크 오류)");
@@ -1138,18 +1139,33 @@ function setCalculationOfParam() {
         return numStr.replace(/(\.0*|0+)$/, ''); 
     }
 	
+	function formatNegativeValue(value) {
+        const num = Number(value);
+        if (num < 0) {
+            return `(${value})`;
+        }
+        return value;
+    }
+	
 	$('#apply-calculation-body tr').each(function () {
 		const $tr = $(this);
 	    const data = $tr.data();
-	    const params = {
-			A: trimTrailingZeros(data.param_a),
-	        B: trimTrailingZeros(data.param_b),
-	        C: trimTrailingZeros(data.param_c),
-	        D: trimTrailingZeros(data.param_d),
-	        E: trimTrailingZeros(data.param_e)
+		
+		const trimmedA = trimTrailingZeros(data.param_a);
+	    const trimmedB = trimTrailingZeros(data.param_b);
+	    const trimmedC = trimTrailingZeros(data.param_c);
+	    const trimmedD = trimTrailingZeros(data.param_d);
+	    const trimmedE = trimTrailingZeros(data.param_e);
+		
+		const params = {
+			A: formatNegativeValue(trimmedA),
+	        B: formatNegativeValue(trimmedB),
+	        C: formatNegativeValue(trimmedC),
+	        D: formatNegativeValue(trimmedD),
+	        E: formatNegativeValue(trimmedE)
 	    };
 
-	    let formula = data.formula.replace(/\b[A-E]\b/g, match => params[match] ?? match);
+		let formula = data.formula.replace(/\b[A-E]\b/g, match => params[match] ?? match);
 	    $tr.children('td').eq(1).text(formula);
     });
 }
@@ -1435,6 +1451,7 @@ async function UpsertDmsSensorTypeInfoForm(mode) {
 		const $html = await PostRequest('combo', { category }, 'text');
 		const $parsed = $('<div>' + $html + '</div>');
 	    $('#sensor-type-ul').html($parsed.find('#sensor-type-ul').html());
+		$('#sensor-sensor-type').html($parsed.find('#sensor-sensor-type').html());
 	} catch (e) {
 		console.error(e);
 		showMessage("서버와의 연결에 문제가 발생했습니다. (네트워크 오류)");

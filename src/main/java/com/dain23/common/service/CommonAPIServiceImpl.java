@@ -96,8 +96,10 @@ public class CommonAPIServiceImpl implements CommonAPIService {
 				}
 				result.put("sensorSet", sensors);
 
+				String valName = "changed_val";
+				int typeId = sensors.get(0).getSensorTypeId();
 				boolean cycleCheck = (boolean) sensors.get(0).isCycleCheck();
-				String valName = cycleCheck ? "changed_val" : "correction_val";
+				if (!cycleCheck && typeId == 4) valName = "correction_val";
 				
 				List<Map<String, Object>> data = commonMapper.findSensorInLoggerData(
 					placeCode, sensors, body.getStart(), body.getEnd(), valName, 
@@ -117,6 +119,7 @@ public class CommonAPIServiceImpl implements CommonAPIService {
 				result.put("sensorSet", sensor);
 
 				if (body.isAverage()) {
+					commonMapper.initializeRunningTotal(placeCode, sensor.getSensorId(), body.getStart());
 					if (!body.isScroll()) {
 						List<Map<String, Object>> chart = commonMapper.findSensorMaxAvgChart(
 							placeCode, body.getSelect(), body.getStart(), body.getEnd()

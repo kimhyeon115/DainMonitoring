@@ -12,6 +12,11 @@ const TableSet = {
 					'measured_at',
 					'correction_val',
 					'changed_val'
+				],
+				FlowMeters: [
+					'measured_at',
+					'correction_val',
+					'changed_val'
 				]
 			},
 			column: {
@@ -19,6 +24,11 @@ const TableSet = {
 					measured_at: '측정일시',
 					correction_val: 'PVS',
 					changed_val: 'kine',
+				},
+				FlowMeters: {
+					measured_at: '측정일시',
+					correction_val: '측정값(pulse)',
+					changed_val: '유량(m³/h)',
 				}
 			}
 		},
@@ -29,6 +39,11 @@ const TableSet = {
 					'max_changed_val',
 					'avg_changed_val',
 					'record_count'
+				],
+				FlowMeters: [
+					'measurement_date',
+					'today_changed_sum',
+					'total_changed_sum'
 				]
 			},
 			column: {
@@ -37,6 +52,11 @@ const TableSet = {
 					max_changed_val: '최대(kine)',
 					avg_changed_val: '평균(kine)',
 					record_count: '진동횟수'
+				},
+				FlowMeters: {
+					measurement_date: '날짜',
+					today_changed_sum: '유량(m³/일)',
+					total_changed_sum: '누적유량(m³)',
 				}
 			}
 		}
@@ -77,6 +97,12 @@ const TableSet = {
 					'changed_val'
 				],
 				GroundWaterLevel: [
+					'measured_at',
+					'correction_val',
+					'displace_val',
+					'changed_val'
+				],
+				VWGroundWaterLevel: [
 					'measured_at',
 					'correction_val',
 					'displace_val',
@@ -196,6 +222,12 @@ const TableSet = {
 				GroundWaterLevel: {
 					measured_at: '측정일시',
 					correction_val: '측정값(mv)',
+					displace_val: '현재 수위(m)',
+					changed_val: '변화량(m)'
+				},
+				VWGroundWaterLevel: {
+					measured_at: '측정일시',
+					correction_val: '측정값(vw)',
 					displace_val: '현재 수위(m)',
 					changed_val: '변화량(m)'
 				},
@@ -329,6 +361,14 @@ const TableSet = {
 					'min_changed_val'
 				],
 				GroundWaterLevel: [
+					'measurement_date',
+					'avg_correction_val',
+					'avg_displace_val',
+					'avg_changed_val',
+					'max_changed_val',
+					'min_changed_val'
+				],
+				VWGroundWaterLevel: [
 					'measurement_date',
 					'avg_correction_val',
 					'avg_displace_val',
@@ -493,6 +533,14 @@ const TableSet = {
 				GroundWaterLevel: {
 					measurement_date: '날짜',
 					avg_correction_val: '평균 측정값(mv)',
+					avg_displace_val: '평균 수위(m)',
+					avg_changed_val: '평균 변화량(m)',
+					max_changed_val: '최대 변화량(m)',
+					min_changed_val: '최소 변화량(m)'
+				},
+				VWGroundWaterLevel: {
+					measurement_date: '날짜',
+					avg_correction_val: '평균 측정값(vw)',
 					avg_displace_val: '평균 수위(m)',
 					avg_changed_val: '평균 변화량(m)',
 					max_changed_val: '최대 변화량(m)',

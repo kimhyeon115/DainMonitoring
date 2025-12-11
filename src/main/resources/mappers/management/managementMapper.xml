@@ -111,12 +111,15 @@
 			ON dst.id = ds.sensor_type_id 
 		JOIN dain_logger dl 
 			ON dl.id = ds.logger_id 
+		JOIN dain_sensor_type_setting dsts 
+			ON dsts.place_id = dp.id 
+			AND dsts.sensor_type_id = ds.sensor_type_id 
 		WHERE 
 			ds.logger_id = #{params.loggerId} 
 			AND ds.used = true 
-			AND dst.id NOT IN (5, 6) 
+			AND dsts.hidden = false 
 		ORDER BY 
-			ds.name
+			ds.name;
 	</select>
 	
 	
@@ -189,7 +192,8 @@
 			sensor_id = #{params.sensorId}
 			AND raw_val = 0
 		ORDER BY 
-			measured_at DESC
+			measured_at DESC 
+		LIMIT 50
 	</select>
 	
 </mapper>

@@ -41,13 +41,16 @@ public class ModulateData {
 		if (dataList.isEmpty()) return chartData;
 		
 		String dateKey = average ? "measured_date" : "measured_at";
+		String typeId = dataList.get(0).get("sensor_type_id").toString();
 		String valueKey;
+
 		if (average) {
 		    valueKey = "avg_changed_val";
-		    if (dataList.get(0).get("sensor_type_id").toString().equals("15")) valueKey = "avg_displace_val";
+		    if (typeId.equals("15") || typeId.equals("26")) valueKey = "avg_displace_val";
+		    if (typeId.equals("25")) valueKey = "sum_changed_val";
 		} else {
 		    valueKey = "changed_val";
-		    if (dataList.get(0).get("sensor_type_id").toString().equals("15")) valueKey = "displace_val";
+		    if (typeId.equals("15") || typeId.equals("26")) valueKey = "displace_val";
 		}
 
 		for (Map<String, Object> row : dataList) {

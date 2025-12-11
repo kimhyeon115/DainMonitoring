@@ -359,7 +359,7 @@ function oneSensorColumnChart(min, max, column, row, chartId) {
 }
 
 
-/* 차트 옵션 가공 */
+/* 라인차트 옵션 가공 */
 function createSeries(column) {
     return Object.fromEntries(
         column

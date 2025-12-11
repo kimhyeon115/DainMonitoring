@@ -184,6 +184,14 @@
 </select>
 
 
+<select id="sensor-sensor-type" class="form-select">
+	<option value="" selected disabled>= 선택 =</option>
+	<th:block th:each="type : ${sensorTypeCombo}">
+		<option th:value="${type.id}" th:text="${type.code}"></option>
+	</th:block>
+</select>
+
+
 <tbody id="apply-calculation-body">
 	<th:block th:each="row : ${applyCalculation}">
 		<tr th:data-param_a="${row.A}"
@@ -201,6 +209,16 @@
 		</tr>
 	</th:block>
 </tbody>
+
+
+<select id="sensor-apply-calculation" class="form-select">
+	<option value="" selected disabled>= 선택 =</option>
+	<th:block th:each="cal : ${calculationCombo}">
+        <option th:text="${cal.formula}" th:value="${cal.formula}" 
+			th:data-id="${cal.id}" th:data-target_column="${cal.target_column}">
+		</option>
+	</th:block>
+</select>
 
 
 <tbody id="sensor-initial-body">

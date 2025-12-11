@@ -396,7 +396,7 @@ function replaceSystemBody(data, sensorSet, scroll) {
 		headerTr.append(`<th class="text-center" style="min-width: 70px"><strong>${avrageYn ? '날짜' : '측정일시'}</strong></th>`);
 		for (const col of sensorSet) {
 			headerTr.append(`<th class="text-center" style="min-width: 70px"><strong>${col.sensorCode}</strong></th>`);
-			if (!col.cycleCheck && !col.hidden) {
+			if (!col.cycleCheck && !col.hidden && col.sensorTypeId == 4) {
 				headerTr.append(`<th class="text-center" style="min-width: 70px"><strong>kine</strong></th>`);
 			}
 		}
@@ -418,7 +418,7 @@ function replaceSystemBody(data, sensorSet, scroll) {
 			    const sensorVal = row[col.sensorCode] ?? 'x';
 			    bodyTr.append(`<td class="text-center">${sensorVal}</td>`);
 
-			    if (!col.cycleCheck && !col.hidden) {
+			    if (!col.cycleCheck && !col.hidden && col.sensorTypeId == 4) {
 			        const kineVal = row['kine'] ?? 'x';
 			        bodyTr.append(`<td class="text-center">${kineVal}</td>`);
 			    }

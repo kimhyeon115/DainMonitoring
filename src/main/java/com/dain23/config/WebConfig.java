@@ -36,6 +36,7 @@ public class WebConfig implements WebMvcConfigurer {
         "/**/signIn",
 
         /* 사이트별 기본 페이지 & 패치 페이지 */
+        "/",
         "/*/",
         "/management/css",
         "/management/js",
@@ -64,6 +65,7 @@ public class WebConfig implements WebMvcConfigurer {
         "/**/signIn",
 
         /* 사이트별 기본 페이지 & 패치 페이지 */
+        "/",
         "/*/",
         "/*/patch",
         
