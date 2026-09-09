@@ -84,5 +84,5 @@ Dain23/
 
 ---
 
-> 이 프로젝트를 포함한 실무 사례는 [포트폴리오](https://kimhyeon115.github.io/portfolio/)에서 정리하고 있습니다.
+> 이 프로젝트를 포함한 실무 사례는 [포트폴리오](https://kimhyeon115.github.io/portfolio/fulltime.html)에서 정리하고 있습니다.
 
